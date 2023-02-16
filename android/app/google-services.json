@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "7607149429",
+    "project_id": "chatbot-bffbf",
+    "storage_bucket": "chatbot-bffbf.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:7607149429:android:97379430f12bd80671a93c",
+        "android_client_info": {
+          "package_name": "com.example.chat_app"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "7607149429-7lbq81kcrbp9t6tmkvsc2hbusc4glbfd.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyD7FxlUi-uIpZh_qrJ4hC2-NnwX0bWvbK0"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "7607149429-7lbq81kcrbp9t6tmkvsc2hbusc4glbfd.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
