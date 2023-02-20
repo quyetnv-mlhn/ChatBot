@@ -42,6 +42,7 @@ dependencies:
   flutter_secure_storage: ^8.0.0
   google_sign_in: ^5.4.4
   cloud_firestore: ^4.4.0
+  dialog_flowtter: ^0.3.3
 
 dev_dependencies:
   flutter_test:

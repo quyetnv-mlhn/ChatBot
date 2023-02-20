@@ -1,8 +1,10 @@
 import 'dart:convert';
+import 'dart:ffi';
 
 import 'package:http/http.dart' as http;
+import 'package:dialog_flowtter/dialog_flowtter.dart';
 
-String apiKey = "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";
+String apiKey = "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";
 
 class ApiServices {
   static String baseUrl = "https://api.openai.com/v1/completions";
@@ -27,13 +29,15 @@ class ApiServices {
         })
     );
 
-    if(res.statusCode == 200) {
+    if (res.statusCode == 200) {
       var data = jsonDecode(utf8.decode(res.bodyBytes));
       var msg = data['choices'][0]['text'];
       return msg;
     } else {
+      print(res.statusCode);
       print("Failed to fetch data");
+      return 'This is a reply from the chatbot.';
     }
-
   }
+  
 }

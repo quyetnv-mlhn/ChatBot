@@ -16,6 +16,7 @@ class SignUp extends StatefulWidget {
 class _SignUpState extends State<SignUp> {
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passController = TextEditingController();
+  final TextEditingController confirmPassController = TextEditingController();
 
   void checkSignUp() {
     if (emailController.text == '') {
@@ -46,6 +47,24 @@ class _SignUpState extends State<SignUp> {
               SizedBox(width: 8.0),
               Text(
                 'Vui lòng nhập mật khẩu.',
+                style: TextStyle(color: Colors.white),
+              ),
+            ],
+          ),
+          backgroundColor: Colors.red,
+          duration: Duration(seconds: 3),
+        ),
+      );
+    } else if (confirmPassController.text == '') {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: const <Widget>[
+              Icon(Icons.error_outline, color: Colors.white),
+              SizedBox(width: 8.0),
+              Text(
+                'Vui lòng nhập lại mật khẩu.',
                 style: TextStyle(color: Colors.white),
               ),
             ],
@@ -177,6 +196,16 @@ class _SignUpState extends State<SignUp> {
       ),
     );
 
+    final confirmPassword = TextFormField(
+        controller: confirmPassController,
+        autofocus: false,
+        obscureText: true,
+        decoration: InputDecoration(
+            hintText: 'Nhập lại mật khẩu',
+            contentPadding: const EdgeInsets.fromLTRB(20, 10, 20, 10),
+            border: OutlineInputBorder(borderRadius: BorderRadius.circular(32))),
+    );
+
     var SignUpButton = ElevatedButton(
       style: ElevatedButton.styleFrom(
           minimumSize: const Size(200, 40),
@@ -187,7 +216,27 @@ class _SignUpState extends State<SignUp> {
       ),
       onPressed: () {
         checkSignUp();
-        createUserWithEmailAndPassword();
+        if (confirmPassController.text == passController.text) {
+          createUserWithEmailAndPassword();
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: const <Widget>[
+                  Icon(Icons.error_outline, color: Colors.white),
+                  SizedBox(width: 8.0),
+                  Text(
+                    'Mật khẩu không khớp. Hãy thử lại.',
+                    style: TextStyle(color: Colors.white),
+                  ),
+                ],
+              ),
+              backgroundColor: Colors.red,
+              duration: Duration(seconds: 3),
+            ),
+          );
+        }
       },
       child: const Padding(
         padding: EdgeInsets.fromLTRB(20, 10, 20, 10),
@@ -308,6 +357,8 @@ class _SignUpState extends State<SignUp> {
                     email,
                     const SizedBox(height: 10,),
                     password,
+                    const SizedBox(height: 10,),
+                    confirmPassword,
                   ],
                 ),
                 Column(

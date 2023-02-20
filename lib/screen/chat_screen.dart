@@ -1,10 +1,15 @@
+import 'dart:async';
+import 'dart:ffi';
+
 import 'package:chat_app/api_services.dart';
 import 'package:chat_app/screen/setting_screen.dart';
 import 'package:flutter/material.dart';
+import 'package:chat_app/chatdata/handle.dart';
 
 class Chat extends StatefulWidget {
   final String title;
-  const Chat({Key? key, required this.title}) : super(key: key);
+  final String user_id;
+  const Chat({Key? key, required this.title, required this.user_id}) : super(key: key);
 
   @override
   _ChatState createState() => _ChatState();
@@ -12,46 +17,100 @@ class Chat extends StatefulWidget {
 
 class _ChatState extends State<Chat> {
   final TextEditingController _textEditingController = TextEditingController();
-  final List<ChatMessage> _messages = [];
+  List<ChatMessage> _messages = [];
+  bool checkSetState = true;
+  int backButtonPressedCount = 0;
+  final Handle _handle = Handle();
+
+  Future<bool> _onWillPop() async {
+    if (backButtonPressedCount == 1) {
+      // exit(0);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text("Hi"),
+          behavior: SnackBarBehavior.floating,
+
+        ),
+      );
+      return false;
+    } else {
+      // Nếu đây là lần đầu tiên người dùng bấm nút quay trở lại,
+      // họ sẽ được thông báo rằng họ cần bấm nút quay trở lại lần nữa để thoát ứng dụng.
+      backButtonPressedCount++;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Center(
+            child: Text(
+              'Chạm lần nữa để thoát',
+            ),
+          ),
+          duration: Duration(seconds: 2),
+          backgroundColor: Color.fromRGBO(1, 1, 1, 0.7),
+          elevation: 0,
+          behavior: SnackBarBehavior.floating,
+          width: 300,
+        ),
+      );
+      Timer(const Duration(seconds: 2), () => backButtonPressedCount = 0);
+      return false;
+    }
+  }
+
+  Future<void> waitData() async {
+    List<ChatMessage> _messages2 = await _handle.readData(widget.user_id);
+    _messages.addAll(_messages2);
+    setState(() {
+
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.white,
-      appBar: AppBar(
-        automaticallyImplyLeading: false,
-        iconTheme: const IconThemeData(color: Colors.black54),
-        backgroundColor: const Color.fromRGBO(242, 248, 248, 1),
-        title: Row(
-          children: [
-            const CircleAvatar(
-              backgroundImage: AssetImage('assets/logo.jpg'),
-            ),
-            Expanded(child: Text(widget.title, style: const TextStyle(color: Colors.black54, fontSize: 18), textAlign: TextAlign.center,))
-          ]
+    if (checkSetState) {
+      waitData();
+      checkSetState = false;
+    }
+
+    return WillPopScope(
+      onWillPop: _onWillPop,
+      child: Scaffold(
+        backgroundColor: Colors.white,
+        appBar: AppBar(
+          automaticallyImplyLeading: false,
+          iconTheme: const IconThemeData(color: Colors.black54),
+          backgroundColor: const Color.fromRGBO(242, 248, 248, 1),
+          title: Row(
+            children: [
+              const CircleAvatar(
+                backgroundImage: AssetImage('assets/logo.jpg'),
+              ),
+              Expanded(child: Text(widget.title, style: const TextStyle(color: Colors.black54, fontSize: 18), textAlign: TextAlign.center,))
+            ]
+          ),
+          actions: [
+            IconButton(
+              icon: const Icon(
+                Icons.settings,
+              ),
+              onPressed: () {
+                Handle().readData(widget.user_id);
+                Navigator.push(context, MaterialPageRoute(builder: (context) => const Setting()));
+              },
+            )
+          ],
         ),
-        actions: [
-          IconButton(
-            icon: const Icon(
-              Icons.settings,
-            ),
-            onPressed: () {
-              Navigator.push(context, MaterialPageRoute(builder: (context) => const Setting()));
-            },
-          )
-        ],
-      ),
-      body: Column(
-        children: [
-          Flexible(
-              child: ListView.builder(
-                padding: const EdgeInsets.all(8),
-                reverse: true,
-                itemBuilder: (_, int index) => _messages[index],
-                itemCount: _messages.length,
-              )),
-          _buildTextComposer()
-        ],
+        body: Column(
+          children: [
+            Flexible(
+                child: ListView.builder(
+                  padding: const EdgeInsets.all(8),
+                  reverse: true,
+                  itemBuilder: (_, int index) => _messages[index],
+                  itemCount: _messages.length,
+                )),
+            _buildTextComposer()
+          ],
+        ),
       ),
     );
   }
@@ -109,12 +168,14 @@ class _ChatState extends State<Chat> {
     String msg2 = msg1.replaceFirst("\n", "");
 
     ChatMessage reply = ChatMessage(
-      text: msg2 != null ? msg2 : 'This is a reply from the chatbot.',
+      // msg2 != null ? msg2 :
+      text: msg2,
       isUser: false,
     );
 
     setState(() {
       _messages.insert(0, reply);
+      _handle.addData(widget.user_id, chatMessage.text, reply.text);
     });
   }
 

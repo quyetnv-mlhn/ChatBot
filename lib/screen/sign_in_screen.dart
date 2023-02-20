@@ -1,4 +1,5 @@
 import 'package:chat_app/authentication/auth_page.dart';
+import 'package:chat_app/chatdata/handle.dart';
 import 'package:chat_app/screen/sign_up_screen.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -44,7 +45,7 @@ class _LoginState extends State<Login> {
             ],
           ),
           backgroundColor: Colors.red,
-          duration: Duration(seconds: 3),
+          duration: const Duration(seconds: 3),
         ),
       );
     } else if (passController.text == '') {
@@ -62,7 +63,7 @@ class _LoginState extends State<Login> {
             ],
           ),
           backgroundColor: Colors.red,
-          duration: Duration(seconds: 3),
+          duration: const Duration(seconds: 3),
         ),
       );
     }
@@ -74,8 +75,10 @@ class _LoginState extends State<Login> {
         email: emailController.text,
         password: passController.text,
       );
-      print(Auth().firebaseAuth.currentUser?.uid);
-      Navigator.push(context, MaterialPageRoute(builder: (context) => Chat(title: 'ChatBot Cuti')));
+
+      String? user_id = Auth().firebaseAuth.currentUser?.uid;
+
+      Navigator.push(context, MaterialPageRoute(builder: (context) => Chat(title: 'ChatBot Cuti', user_id: user_id == null ? '' : user_id)));
     } on FirebaseAuthException catch (e) {
       if (e.code == 'user-not-found') {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -92,7 +95,7 @@ class _LoginState extends State<Login> {
               ],
             ),
             backgroundColor: Colors.red,
-            duration: Duration(seconds: 3),
+            duration: const Duration(seconds: 3),
           ),
         );
       } else if (e.code == 'invalid-email') {
@@ -110,7 +113,7 @@ class _LoginState extends State<Login> {
               ],
             ),
             backgroundColor: Colors.red,
-            duration: Duration(seconds: 3),
+            duration: const Duration(seconds: 3),
           ),
         );
       } else if (e.code == 'wrong-password') {
@@ -128,7 +131,7 @@ class _LoginState extends State<Login> {
               ],
             ),
             backgroundColor: Colors.red,
-            duration: Duration(seconds: 3),
+            duration: const Duration(seconds: 3),
           ),
         );
       }
@@ -237,7 +240,7 @@ class _LoginState extends State<Login> {
               ],
             ),
             backgroundColor: Colors.cyan,
-            duration: Duration(seconds: 1),
+            duration: const Duration(seconds: 1),
           ),
         );
       },
@@ -283,7 +286,7 @@ class _LoginState extends State<Login> {
               ],
             ),
             backgroundColor: Colors.cyan,
-            duration: Duration(seconds: 1),
+            duration: const Duration(seconds: 1),
           ),
         );
       },
@@ -303,7 +306,7 @@ class _LoginState extends State<Login> {
             ),
           ),
           onPressed: () {
-            Navigator.push(context, MaterialPageRoute(builder: (context) => SignUp()));
+            Navigator.push(context, MaterialPageRoute(builder: (context) => const SignUp()));
           },
         )
       ],
