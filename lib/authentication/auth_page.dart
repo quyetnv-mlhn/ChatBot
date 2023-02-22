@@ -56,7 +56,7 @@ class Auth {
         final UserCredential userCredential =
         await auth.signInWithCredential(credential);
         user = userCredential.user;
-
+        // print(user?.photoURL);
         // print(user?.uid);
 
         Navigator.push(context, MaterialPageRoute(builder: (context) => Chat(title: 'ChatBot Cuti', user_id: user!.uid,)));

@@ -2,9 +2,8 @@ import 'dart:convert';
 import 'dart:ffi';
 
 import 'package:http/http.dart' as http;
-import 'package:dialog_flowtter/dialog_flowtter.dart';
 
-String apiKey = "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";
+String apiKey = "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";
 
 class ApiServices {
   static String baseUrl = "https://api.openai.com/v1/completions";
@@ -36,7 +35,7 @@ class ApiServices {
     } else {
       print(res.statusCode);
       print("Failed to fetch data");
-      return 'This is a reply from the chatbot.';
+      return '';
     }
   }
   

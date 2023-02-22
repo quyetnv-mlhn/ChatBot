@@ -1,10 +1,12 @@
 import 'dart:async';
-import 'dart:ffi';
+import 'dart:io';
 
 import 'package:chat_app/api_services.dart';
 import 'package:chat_app/screen/setting_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:chat_app/chatdata/handle.dart';
+import 'package:fluttertoast/fluttertoast.dart';
+import 'package:speech_to_text/speech_to_text.dart' as stt;
 
 class Chat extends StatefulWidget {
   final String title;
@@ -22,36 +24,33 @@ class _ChatState extends State<Chat> {
   int backButtonPressedCount = 0;
   final Handle _handle = Handle();
 
+  late stt.SpeechToText _speechToText;
+  bool _isListening = false;
+  String? _textSpeech;
+
+  @override
+  void initState() {
+    super.initState();
+    _speechToText = stt.SpeechToText();
+  }
+
   Future<bool> _onWillPop() async {
     if (backButtonPressedCount == 1) {
-      // exit(0);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text("Hi"),
-          behavior: SnackBarBehavior.floating,
-
-        ),
-      );
-      return false;
+      exit(0);
     } else {
-      // Nếu đây là lần đầu tiên người dùng bấm nút quay trở lại,
-      // họ sẽ được thông báo rằng họ cần bấm nút quay trở lại lần nữa để thoát ứng dụng.
       backButtonPressedCount++;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Center(
-            child: Text(
-              'Chạm lần nữa để thoát',
-            ),
-          ),
-          duration: Duration(seconds: 2),
-          backgroundColor: Color.fromRGBO(1, 1, 1, 0.7),
-          elevation: 0,
-          behavior: SnackBarBehavior.floating,
-          width: 300,
-        ),
+      Fluttertoast.showToast(
+        msg: "Bấm back lần nữa để thoát",
+        toastLength: Toast.LENGTH_SHORT,
+        gravity: ToastGravity.CENTER,
+        timeInSecForIosWeb: 2,
+        backgroundColor: Color.fromRGBO(1, 1, 1, 0.7),
+        textColor: Colors.white,
+        fontSize: 18.0,
       );
-      Timer(const Duration(seconds: 2), () => backButtonPressedCount = 0);
+      Timer(Duration(seconds: 2), () {
+        backButtonPressedCount = 0;
+      });
       return false;
     }
   }
@@ -124,31 +123,58 @@ class _ChatState extends State<Chat> {
             color: const Color.fromRGBO(242, 248, 248, 1),
           ),
           margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(20, 0, 10, 0),
-            child: Row(
-              children: [
-                Flexible(
-                    child: TextField(
-                      style: const TextStyle(fontSize: 18),
-                      controller: _textEditingController,
-                      onSubmitted: _handleSubmitted,
-                      decoration:
-                      const InputDecoration.collapsed(hintText: "Send a message"),
-                    )),
-                Container(
-                  margin: const EdgeInsets.only(left: 4),
-                  child: IconButton(
-                      icon: const Icon(Icons.send),
-                      onPressed: () {
-                        if(_textEditingController.text != "") {
-                          _handleSubmitted(_textEditingController.text);
+          child: Row(
+            children: [
+              Container(
+                margin: const EdgeInsets.only(right: 4),
+                child: IconButton(
+                    icon: Icon(_isListening ? Icons.mic : Icons.mic_none),
+                    onPressed: () async {
+                      if (!_isListening) {
+                        bool available = await _speechToText.initialize(
+                          onStatus: (val) => print('onStatus: $val'),
+                          onError: (val) => print('onError: $val'),
+                        );
+                        print(available);
+                        if (available) {
+                          setState(() {
+                            _isListening = true;
+                          });
+                          _speechToText.listen(
+                            onResult: (val) => setState(() {
+                              _textSpeech = val.recognizedWords;
+                              _textEditingController.text = _textSpeech!;
+                            })
+                          );
                         }
+                      } else {
+                        setState(() {
+                          _isListening = false;
+                          _speechToText.stop();
+                        });
                       }
-                  ),
-                )
-              ],
-            ),
+                    },
+                ),
+              ),
+              Flexible(
+                  child: TextField(
+                    style: const TextStyle(fontSize: 18),
+                    controller: _textEditingController,
+                    onSubmitted: _handleSubmitted,
+                    decoration: const InputDecoration.collapsed(hintText: "Send a message"),
+                  )),
+              Container(
+                margin: const EdgeInsets.only(left: 4),
+                child: IconButton(
+                    icon: const Icon(Icons.send),
+                    onPressed: () {
+                      if(_textEditingController.text != "") {
+                        _handleSubmitted(_textEditingController.text);
+                      }
+                    }
+                ),
+              )
+            ],
           ),
         ));
   }
@@ -163,12 +189,17 @@ class _ChatState extends State<Chat> {
       _messages.insert(0, chatMessage);
     });
 
+    // String msg2 = Handle().handleUserInput(chatMessage.text);
+
     String msg = await ApiServices.sendMessage(text);
     String msg1 = msg.replaceFirst("\n", "");
     String msg2 = msg1.replaceFirst("\n", "");
 
+    if (msg2 == '') {
+      msg2 = _handle.handleUserInput(text);
+    }
+
     ChatMessage reply = ChatMessage(
-      // msg2 != null ? msg2 :
       text: msg2,
       isUser: false,
     );
@@ -178,27 +209,6 @@ class _ChatState extends State<Chat> {
       _handle.addData(widget.user_id, chatMessage.text, reply.text);
     });
   }
-
-  // Future<bool> _onBackPressed(BuildContext context) async {
-  //   return await showDialog(
-  //     context: context,
-  //     builder: (context) => AlertDialog(
-  //       title: const Text('Are you sure?'),
-  //       content: const Text('Do you want to exit an App'),
-  //       actions: <Widget>[
-  //         GestureDetector(
-  //           onTap: () => Navigator.of(context).pop(false),
-  //           child: const Text("NO"),
-  //         ),
-  //         const SizedBox(height: 16),
-  //         GestureDetector(
-  //           onTap: () => Navigator.of(context).pop(true),
-  //           child: const Text("YES"),
-  //         ),
-  //       ],
-  //     ),
-  //   ) ?? false;
-  // }
 }
 
 class ChatMessage extends StatelessWidget {
