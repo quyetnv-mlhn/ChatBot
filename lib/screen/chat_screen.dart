@@ -1,12 +1,15 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:avatar_glow/avatar_glow.dart';
 import 'package:chat_app/api_services.dart';
 import 'package:chat_app/screen/setting_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:chat_app/chatdata/handle.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:speech_to_text/speech_to_text.dart' as stt;
+import 'package:speech_to_text/speech_to_text.dart';
+import 'package:text_to_speech/text_to_speech.dart';
 
 class Chat extends StatefulWidget {
   final String title;
@@ -23,8 +26,8 @@ class _ChatState extends State<Chat> {
   bool checkSetState = true;
   int backButtonPressedCount = 0;
   final Handle _handle = Handle();
-
   late stt.SpeechToText _speechToText;
+  TextToSpeech _textToSpeech = TextToSpeech();
   bool _isListening = false;
   String? _textSpeech;
 
@@ -32,6 +35,7 @@ class _ChatState extends State<Chat> {
   void initState() {
     super.initState();
     _speechToText = stt.SpeechToText();
+    _textToSpeech.setLanguage('vi-VN');
   }
 
   Future<bool> _onWillPop() async {
@@ -44,11 +48,11 @@ class _ChatState extends State<Chat> {
         toastLength: Toast.LENGTH_SHORT,
         gravity: ToastGravity.CENTER,
         timeInSecForIosWeb: 2,
-        backgroundColor: Color.fromRGBO(1, 1, 1, 0.7),
+        backgroundColor: const Color.fromRGBO(1, 1, 1, 0.7),
         textColor: Colors.white,
         fontSize: 18.0,
       );
-      Timer(Duration(seconds: 2), () {
+      Timer(const Duration(seconds: 2), () {
         backButtonPressedCount = 0;
       });
       return false;
@@ -57,17 +61,49 @@ class _ChatState extends State<Chat> {
 
   Future<void> waitData() async {
     List<ChatMessage> _messages2 = await _handle.readData(widget.user_id);
-    _messages.addAll(_messages2);
-    setState(() {
-
+    await Future.delayed(const Duration(seconds: 1), () {
+      _messages.addAll(_messages2);
     });
+    setState(() {
+      checkSetState = false;
+    });
+  }
+
+  _showDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(
+          'Hãy nói gì đó',
+          textAlign: TextAlign.center,
+        ),
+        content: AvatarGlow(
+          glowColor: Colors.blue,
+          endRadius: 90.0,
+          duration: Duration(milliseconds: 2000),
+          repeat: true,
+          showTwoGlows: true,
+          repeatPauseDuration: Duration(milliseconds: 100),
+          child: Material(     // Replace this child with your own
+            elevation: 8.0,
+            shape: CircleBorder(),
+            child: CircleAvatar(
+              child: Icon(
+                Icons.mic,
+                color: Theme.of(context).colorScheme.secondary,
+              ),
+              radius: 40.0,
+            ),
+          ),
+        ),
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     if (checkSetState) {
       waitData();
-      checkSetState = false;
     }
 
     return WillPopScope(
@@ -98,16 +134,23 @@ class _ChatState extends State<Chat> {
             )
           ],
         ),
-        body: Column(
+        body: Stack(
           children: [
-            Flexible(
-                child: ListView.builder(
-                  padding: const EdgeInsets.all(8),
-                  reverse: true,
-                  itemBuilder: (_, int index) => _messages[index],
-                  itemCount: _messages.length,
-                )),
-            _buildTextComposer()
+            Column(
+              children: [
+                Flexible(
+                    child: ListView.builder(
+                      padding: const EdgeInsets.all(8),
+                      reverse: true,
+                      itemBuilder: (_, int index) => _messages[index],
+                      itemCount: _messages.length,
+                    )),
+                _buildTextComposer()
+              ],
+            ),
+            checkSetState
+              ? const Expanded(child: Center(child: CircularProgressIndicator()))
+              : const Center(child: null),
           ],
         ),
       ),
@@ -128,30 +171,35 @@ class _ChatState extends State<Chat> {
               Container(
                 margin: const EdgeInsets.only(right: 4),
                 child: IconButton(
-                    icon: Icon(_isListening ? Icons.mic : Icons.mic_none),
+                    icon: Icon(Icons.mic_none),
                     onPressed: () async {
+                      _showDialog(context);
                       if (!_isListening) {
                         bool available = await _speechToText.initialize(
-                          onStatus: (val) => print('onStatus: $val'),
-                          onError: (val) => print('onError: $val'),
+                          onStatus: (result) {
+                            print('onStatus: $result');
+                            if (result == 'done') {
+                              Navigator.of(context).pop();
+                              _textEditingController.text = _textSpeech!;
+                              setState(() {
+                                _isListening = false;
+                                _speechToText.stop();
+                              });
+                            }
+                          },
+                          onError: (result) => print('onError: $result'),
                         );
-                        print(available);
                         if (available) {
                           setState(() {
                             _isListening = true;
                           });
                           _speechToText.listen(
-                            onResult: (val) => setState(() {
-                              _textSpeech = val.recognizedWords;
-                              _textEditingController.text = _textSpeech!;
+                            listenMode: ListenMode.confirmation,
+                            onResult: (result) => setState(() {
+                              _textSpeech = result.recognizedWords;
                             })
                           );
                         }
-                      } else {
-                        setState(() {
-                          _isListening = false;
-                          _speechToText.stop();
-                        });
                       }
                     },
                 ),
@@ -206,6 +254,7 @@ class _ChatState extends State<Chat> {
 
     setState(() {
       _messages.insert(0, reply);
+      _textToSpeech.speak(reply.text);
       _handle.addData(widget.user_id, chatMessage.text, reply.text);
     });
   }

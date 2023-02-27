@@ -44,6 +44,8 @@ dependencies:
   cloud_firestore: ^4.4.0
   speech_to_text: ^6.1.1
   fluttertoast: ^8.2.1
+  avatar_glow: ^2.0.2
+  text_to_speech: ^0.2.3
 
 dev_dependencies:
   flutter_test:
