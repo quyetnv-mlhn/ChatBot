@@ -1,4 +1,9 @@
+import 'dart:ffi';
+
+import 'package:chat_app/authentication/user.dart';
+import 'package:chat_app/chatdata/handle.dart';
 import 'package:chat_app/screen/chat_screen.dart';
+import 'package:chat_app/screen/conversation_screen.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -56,10 +61,10 @@ class Auth {
         final UserCredential userCredential =
         await auth.signInWithCredential(credential);
         user = userCredential.user;
+        final userCustom = UserCustom(user?.uid, user?.email, user?.displayName, user?.photoURL);
         // print(user?.photoURL);
         // print(user?.uid);
-
-        Navigator.push(context, MaterialPageRoute(builder: (context) => Chat(title: 'ChatBot Cuti', user_id: user!.uid,)));
+        Navigator.push(context, MaterialPageRoute(builder: (context) => Conversation(user: userCustom,)));
       } on FirebaseAuthException catch (e) {
         if (e.code == 'account-exists-with-different-credential') {
           ScaffoldMessenger.of(context).showSnackBar(

@@ -1,3 +1,4 @@
+import 'package:chat_app/screen/conversation_screen.dart';
 import 'package:intl/intl.dart';
 import 'package:http/http.dart' as http;
 import 'package:chat_app/screen/chat_screen.dart';
@@ -9,8 +10,8 @@ class Handle {
   int countRead = 1;
   List<int> _list = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
 
-  Future<void> addData(String user_id, String user_chat, String bot_chat) async {
-    DocumentReference datas = FirebaseFirestore.instance.collection('data').doc(user_id);
+  Future<void> addData(String user_id, String section, String title, String user_chat, String bot_chat) async {
+    DocumentReference datas = FirebaseFirestore.instance.collection(user_id).doc(section);
     final dataSnapshot = await datas.get();
     final data = dataSnapshot.data();
     countWrite = dataSnapshot.exists? (data as Map)['count'] + 1 : 1;
@@ -21,43 +22,48 @@ class Handle {
         '${countWrite}user': user_chat,
         '${countWrite}bot': bot_chat,
         'count': countWrite,
+        'title': title,
       });
     } else {
       await datas.set({
         '${countWrite}user': user_chat,
         '${countWrite}bot': bot_chat,
         'count': countWrite,
+        'title': title,
       });
     }
   }
 
-  Future<List<ChatMessage>> readData(String user_id) async {
-    DocumentReference datas = FirebaseFirestore.instance.collection('data').doc(user_id);
+  Future<List<ChatMessage>> readData(String user_id, String section) async {
+    DocumentReference datas = FirebaseFirestore.instance.collection(user_id).doc(section);
 
-    List<ChatMessage> chatMessage0 = [];
+    List<ChatMessage> chatMessageReturn = [];
 
     final snapshot = await datas.get();
     if (snapshot.exists) {
       final data = snapshot.data();
       countRead = (data as Map)['count'] + 1;
       if (countRead == 11) countRead = 1;
-      while ((data as Map)['${countRead}user'] != null && _list.isNotEmpty) {
-        print('user: ${(data as Map)['${countRead}user']}');
-        print('bot: ${(data as Map)['${countRead}bot']}');
+      while (_list.isNotEmpty) {
+        // print('user: ${(data as Map)['${countRead}user']}');
+        // print('bot: ${(data as Map)['${countRead}bot']}');
 
         ChatMessage chatMessage = ChatMessage(
           text: (data as Map)['${countRead}user'],
           isUser: true,
+          isNewMessage: false,
         );
-
-        chatMessage0.insert(0, chatMessage);
 
         ChatMessage chatMessageBot = ChatMessage(
           text: (data as Map)['${countRead}bot'],
           isUser: false,
+          isNewMessage: false,
         );
 
-        chatMessage0.insert(0, chatMessageBot);
+        if (chatMessage.text != null) {
+          chatMessageReturn.insert(0, chatMessage);
+          chatMessageReturn.insert(0, chatMessageBot);
+        }
 
         countRead++;
         if (countRead == 11) countRead = 1;
@@ -65,7 +71,25 @@ class Handle {
       }
     }
 
-    return chatMessage0;
+    return chatMessageReturn;
+  }
+
+  // List<ConversationMessage>
+  Future<List<ConversationMessage>> readSection(String user_id) async {
+    List<ConversationMessage> conversationMesseges = [];
+
+    try {
+      QuerySnapshot querySnapshot =
+      await FirebaseFirestore.instance.collection(user_id).get();
+
+      querySnapshot.docs.forEach((doc) {
+        conversationMesseges.add(ConversationMessage(doc.id.split('?')[0], doc.id.split('?')[1]));
+      });
+    } catch (e) {
+      print('Error getting all documents: $e');
+    }
+
+    return conversationMesseges;
   }
 
   String handleUserInput(String user_input) {
@@ -79,7 +103,7 @@ class Handle {
       DateTime now = DateTime.now();
       String formattedDate = DateFormat('dd/MM/yyyy').format(now);
       return("Hôm nay là ngày $formattedDate.");
-    } else if (user_input.toLowerCase().contains("tính tổng")) {
+    } else if (user_input.toLowerCase().contains("tổng")) {
       List<String> words = user_input.split(' ');
       if (words.length <= 3) {
         return("Vui lòng nhập đúng cú pháp. Ví dụ: 'Tính tổng 2 và 3'.");

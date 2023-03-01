@@ -2,20 +2,25 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:avatar_glow/avatar_glow.dart';
+import 'package:chat_app/animation/three_dot.dart';
 import 'package:chat_app/api_services.dart';
+import 'package:chat_app/authentication/user.dart';
 import 'package:chat_app/screen/setting_screen.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:chat_app/chatdata/handle.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:speech_to_text/speech_to_text.dart' as stt;
 import 'package:speech_to_text/speech_to_text.dart';
 import 'package:text_to_speech/text_to_speech.dart';
+import 'package:animated_text_kit/animated_text_kit.dart';
 
 class Chat extends StatefulWidget {
   final String title;
-  final String user_id;
-  const Chat({Key? key, required this.title, required this.user_id}) : super(key: key);
-
+  final UserCustom userCustom;
+  final String section;
+  const Chat({Key? key, required this.title, required this.userCustom, required this.section})
+      : super(key: key);
   @override
   _ChatState createState() => _ChatState();
 }
@@ -24,12 +29,12 @@ class _ChatState extends State<Chat> {
   final TextEditingController _textEditingController = TextEditingController();
   List<ChatMessage> _messages = [];
   bool checkSetState = true;
-  int backButtonPressedCount = 0;
   final Handle _handle = Handle();
   late stt.SpeechToText _speechToText;
   TextToSpeech _textToSpeech = TextToSpeech();
   bool _isListening = false;
   String? _textSpeech;
+  bool checkPop = true; //kiem tra man hinh pop cua aleart dialog
 
   @override
   void initState() {
@@ -38,29 +43,8 @@ class _ChatState extends State<Chat> {
     _textToSpeech.setLanguage('vi-VN');
   }
 
-  Future<bool> _onWillPop() async {
-    if (backButtonPressedCount == 1) {
-      exit(0);
-    } else {
-      backButtonPressedCount++;
-      Fluttertoast.showToast(
-        msg: "Bấm back lần nữa để thoát",
-        toastLength: Toast.LENGTH_SHORT,
-        gravity: ToastGravity.CENTER,
-        timeInSecForIosWeb: 2,
-        backgroundColor: const Color.fromRGBO(1, 1, 1, 0.7),
-        textColor: Colors.white,
-        fontSize: 18.0,
-      );
-      Timer(const Duration(seconds: 2), () {
-        backButtonPressedCount = 0;
-      });
-      return false;
-    }
-  }
-
   Future<void> waitData() async {
-    List<ChatMessage> _messages2 = await _handle.readData(widget.user_id);
+    List<ChatMessage> _messages2 = await _handle.readData(widget.userCustom.id, '${widget.section}?${widget.title}');
     await Future.delayed(const Duration(seconds: 1), () {
       _messages.addAll(_messages2);
     });
@@ -72,27 +56,62 @@ class _ChatState extends State<Chat> {
   _showDialog(BuildContext context) {
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: Text(
-          'Hãy nói gì đó',
-          textAlign: TextAlign.center,
-        ),
-        content: AvatarGlow(
-          glowColor: Colors.blue,
-          endRadius: 90.0,
-          duration: Duration(milliseconds: 2000),
-          repeat: true,
-          showTwoGlows: true,
-          repeatPauseDuration: Duration(milliseconds: 100),
-          child: Material(     // Replace this child with your own
-            elevation: 8.0,
-            shape: CircleBorder(),
-            child: CircleAvatar(
-              child: Icon(
-                Icons.mic,
-                color: Theme.of(context).colorScheme.secondary,
+      builder: (context) => GestureDetector(
+        onTap: () {
+          _textEditingController.text = _textSpeech!;
+          setState(() {
+            checkPop = false;
+            _isListening = false;
+            _speechToText.stop();
+          });
+        },
+        child: WillPopScope(
+          onWillPop: () async {
+            _textEditingController.text = _textSpeech!;
+            setState(() {
+              checkPop = false;
+              _isListening = false;
+              _speechToText.stop();
+            });
+            return true;
+          },
+          child: AlertDialog(
+            title: const Text(
+              'Hãy nói gì đó',
+              textAlign: TextAlign.center,
+            ),
+            content: AvatarGlow(
+              glowColor: Colors.blue,
+              endRadius: 90.0,
+              duration: const Duration(milliseconds: 2000),
+              repeat: true,
+              showTwoGlows: true,
+              repeatPauseDuration: const Duration(milliseconds: 100),
+              child: Material(
+                // Replace this child with your own
+                elevation: 8.0,
+                shape: const CircleBorder(),
+                child: CircleAvatar(
+                  radius: 40.0,
+                  child: Container(
+                    width: 500,
+                    height: 500,
+                    child: IconButton(
+                      icon: const Icon(Icons.mic),
+                      color: Theme.of(context).colorScheme.secondary,
+                      onPressed: () {
+                        Navigator.of(context).pop();
+                        _textEditingController.text = _textSpeech!;
+                        setState(() {
+                          checkPop = false;
+                          _isListening = false;
+                          _speechToText.stop();
+                        });
+                      },
+                    ),
+                  ),
+                ),
               ),
-              radius: 40.0,
             ),
           ),
         ),
@@ -106,53 +125,56 @@ class _ChatState extends State<Chat> {
       waitData();
     }
 
-    return WillPopScope(
-      onWillPop: _onWillPop,
-      child: Scaffold(
-        backgroundColor: Colors.white,
-        appBar: AppBar(
-          automaticallyImplyLeading: false,
-          iconTheme: const IconThemeData(color: Colors.black54),
-          backgroundColor: const Color.fromRGBO(242, 248, 248, 1),
-          title: Row(
-            children: [
-              const CircleAvatar(
-                backgroundImage: AssetImage('assets/logo.jpg'),
-              ),
-              Expanded(child: Text(widget.title, style: const TextStyle(color: Colors.black54, fontSize: 18), textAlign: TextAlign.center,))
-            ]
+    return Scaffold(
+      backgroundColor: Colors.white,
+      appBar: AppBar(
+        automaticallyImplyLeading: false,
+        iconTheme: const IconThemeData(color: Colors.black54),
+        backgroundColor: const Color.fromRGBO(242, 248, 248, 1),
+        title: Row(children: [
+          const CircleAvatar(
+            backgroundImage: AssetImage('assets/logochatbot.png'),
           ),
-          actions: [
-            IconButton(
-              icon: const Icon(
-                Icons.settings,
-              ),
-              onPressed: () {
-                Handle().readData(widget.user_id);
-                Navigator.push(context, MaterialPageRoute(builder: (context) => const Setting()));
-              },
-            )
-          ],
-        ),
-        body: Stack(
-          children: [
-            Column(
-              children: [
-                Flexible(
-                    child: ListView.builder(
-                      padding: const EdgeInsets.all(8),
-                      reverse: true,
-                      itemBuilder: (_, int index) => _messages[index],
-                      itemCount: _messages.length,
-                    )),
-                _buildTextComposer()
-              ],
+          Expanded(
+            child: Text(
+              widget.title,
+              style: const TextStyle(color: Colors.black54, fontSize: 18),
+              textAlign: TextAlign.center,
+          ))
+        ]),
+        actions: [
+          IconButton(
+            icon: const Icon(
+              Icons.settings,
             ),
-            checkSetState
-              ? const Expanded(child: Center(child: CircularProgressIndicator()))
+            onPressed: () {
+              Navigator.push(context,
+                  MaterialPageRoute(builder: (context) => const Setting()));
+            },
+          )
+        ],
+      ),
+      body: Stack(
+        children: [
+          Column(
+            children: [
+              Flexible(
+                child: ListView.builder(
+                  padding: const EdgeInsets.all(8),
+                  reverse: true,
+                  itemBuilder: (context, index) => _messages[index],
+                  itemCount: _messages.length,
+              )),
+              if (_messages.isNotEmpty && _messages.first.isUser) const ThreeDots(),
+              _buildTextComposer()
+            ],
+          ),
+          //tạo animation loading
+          checkSetState
+              ? const Expanded(
+                  child: Center(child: CircularProgressIndicator()))
               : const Center(child: null),
-          ],
-        ),
+        ],
       ),
     );
   }
@@ -171,37 +193,38 @@ class _ChatState extends State<Chat> {
               Container(
                 margin: const EdgeInsets.only(right: 4),
                 child: IconButton(
-                    icon: Icon(Icons.mic_none),
-                    onPressed: () async {
-                      _showDialog(context);
-                      if (!_isListening) {
-                        bool available = await _speechToText.initialize(
-                          onStatus: (result) {
-                            print('onStatus: $result');
-                            if (result == 'done') {
-                              Navigator.of(context).pop();
-                              _textEditingController.text = _textSpeech!;
-                              setState(() {
-                                _isListening = false;
-                                _speechToText.stop();
-                              });
-                            }
-                          },
-                          onError: (result) => print('onError: $result'),
-                        );
-                        if (available) {
-                          setState(() {
-                            _isListening = true;
-                          });
-                          _speechToText.listen(
+                  icon: const Icon(Icons.mic_none),
+                  onPressed: () async {
+                    _showDialog(context);
+                    if (!_isListening) {
+                      bool available = await _speechToText.initialize(
+                        onStatus: (result) {
+                          print('onStatus: $result');
+                          if (result == 'done' && checkPop) {
+                            Navigator.of(context).pop();
+                            _textEditingController.text = _textSpeech!;
+                            setState(() {
+                              _isListening = false;
+                              _speechToText.stop();
+                            });
+                          }
+                        },
+                        onError: (result) => print('onError: $result'),
+                      );
+                      if (available) {
+                        setState(() {
+                          checkPop = true;
+                          _isListening = true;
+                        });
+                        _speechToText.listen(
                             listenMode: ListenMode.confirmation,
                             onResult: (result) => setState(() {
                               _textSpeech = result.recognizedWords;
                             })
-                          );
-                        }
+                        );
                       }
-                    },
+                    }
+                  },
                 ),
               ),
               Flexible(
@@ -209,18 +232,19 @@ class _ChatState extends State<Chat> {
                     style: const TextStyle(fontSize: 18),
                     controller: _textEditingController,
                     onSubmitted: _handleSubmitted,
-                    decoration: const InputDecoration.collapsed(hintText: "Send a message"),
+                    decoration:
+                    const InputDecoration.collapsed(hintText: "Send a message"),
                   )),
               Container(
                 margin: const EdgeInsets.only(left: 4),
                 child: IconButton(
                     icon: const Icon(Icons.send),
                     onPressed: () {
-                      if(_textEditingController.text != "") {
+                      if (_textEditingController.text != "") {
                         _handleSubmitted(_textEditingController.text);
+                        _textSpeech = '';
                       }
-                    }
-                ),
+                    }),
               )
             ],
           ),
@@ -232,7 +256,13 @@ class _ChatState extends State<Chat> {
     ChatMessage chatMessage = ChatMessage(
       text: text,
       isUser: true,
+      isNewMessage: true,
     );
+
+    if (_messages.isEmpty != true && _messages[0].isUser == false) {
+      _messages.first.isNewMessage = false;
+    }
+
     setState(() {
       _messages.insert(0, chatMessage);
     });
@@ -250,12 +280,13 @@ class _ChatState extends State<Chat> {
     ChatMessage reply = ChatMessage(
       text: msg2,
       isUser: false,
+      isNewMessage: true,
     );
 
     setState(() {
       _messages.insert(0, reply);
       _textToSpeech.speak(reply.text);
-      _handle.addData(widget.user_id, chatMessage.text, reply.text);
+      _handle.addData(widget.userCustom.id, '${widget.section}?${widget.title}', widget.title, chatMessage.text, reply.text);
     });
   }
 }
@@ -263,12 +294,14 @@ class _ChatState extends State<Chat> {
 class ChatMessage extends StatelessWidget {
   final String text;
   final bool isUser;
+  bool isNewMessage;
 
-  const ChatMessage({required this.text, required this.isUser});
+  ChatMessage({required this.text, required this.isUser, required this.isNewMessage});
 
   @override
   Widget build(BuildContext context) {
     if (isUser) {
+      // print(_ChatState().widget.userCustom.photoURL);
       return Container(
         margin: const EdgeInsets.symmetric(vertical: 5),
         child: Row(
@@ -301,8 +334,8 @@ class ChatMessage extends StatelessWidget {
             Container(
               margin: const EdgeInsets.only(left: 16),
               child: const CircleAvatar(
-                backgroundImage: AssetImage('assets/anhthe.png')
-              ),
+                  backgroundImage: AssetImage('assets/anhthe.png'),
+              )
             ),
           ],
         ),
@@ -316,7 +349,7 @@ class ChatMessage extends StatelessWidget {
             Container(
               margin: const EdgeInsets.only(right: 16, top: 10),
               child: const CircleAvatar(
-                backgroundImage: AssetImage("assets/logo.jpg"),
+                backgroundImage: AssetImage("assets/logochatbot.png"),
               ),
             ),
             Column(
@@ -334,7 +367,23 @@ class ChatMessage extends StatelessWidget {
                   ),
                   constraints: const BoxConstraints(maxWidth: 250),
                   margin: const EdgeInsets.only(top: 5),
-                  child: Text(text,
+                  child:
+                      isNewMessage
+                      ? AnimatedTextKit(
+                          animatedTexts: [
+                            TypewriterAnimatedText(
+                              text,
+                              textStyle: const TextStyle(
+                                fontSize: 16.0,
+                              ),
+                              speed: const Duration(milliseconds: 50),
+                            ),
+                          ],
+                          totalRepeatCount: 1,
+                          displayFullTextOnTap: true,
+                      )
+                      : Text(
+                      text,
                       textAlign: TextAlign.left,
                       style: const TextStyle(
                         fontSize: 16,

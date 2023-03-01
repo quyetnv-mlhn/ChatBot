@@ -45,7 +45,7 @@ class _settingState extends State<Setting> {
                   ClipOval(
                     child: SizedBox.fromSize(
                       size: const Size(200, 200),
-                      child: Image.asset('assets/anhthe.png', fit: BoxFit.fitWidth,),
+                      child: Image.asset('assets/logochatbot.png', fit: BoxFit.fitWidth,),
                     ),
                   ),
                   ClipRRect(
@@ -55,9 +55,9 @@ class _settingState extends State<Setting> {
                 ]
               ),
               const SizedBox(height: 10,),
-              const Text('Nguyễn Văn Quyết', style: TextStyle(fontSize: 20)),
+              const Text('Song Quyết', style: TextStyle(fontSize: 20)),
               const SizedBox(height: 10,),
-              const Text('quyetnv.mlhn@gmail.com', style: TextStyle(fontSize: 15)),
+              const Text('doubleQ@gmail.com', style: TextStyle(fontSize: 15)),
               const SizedBox(height: 20,),
               const Divider(color: Colors.grey,),
               Expanded(

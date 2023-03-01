@@ -1,5 +1,7 @@
 import 'package:chat_app/authentication/auth_page.dart';
+import 'package:chat_app/authentication/user.dart';
 import 'package:chat_app/chatdata/handle.dart';
+import 'package:chat_app/screen/conversation_screen.dart';
 import 'package:chat_app/screen/sign_up_screen.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -76,9 +78,10 @@ class _LoginState extends State<Login> {
         password: passController.text,
       );
 
-      String? user_id = Auth().firebaseAuth.currentUser?.uid;
+      User? user = Auth().firebaseAuth.currentUser;
+      final userCustom = UserCustom(user?.uid, user?.email, user?.displayName, user?.photoURL);
 
-      Navigator.push(context, MaterialPageRoute(builder: (context) => Chat(title: 'ChatBot Cuti', user_id: user_id == null ? '' : user_id)));
+      Navigator.push(context, MaterialPageRoute(builder: (context) => Conversation(user: userCustom,)));
     } on FirebaseAuthException catch (e) {
       if (e.code == 'user-not-found') {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -156,7 +159,7 @@ class _LoginState extends State<Login> {
       child: CircleAvatar(
         backgroundColor: Colors.transparent,
         radius: 70,
-        child: Image.asset('assets/lock.png'),
+        child: Image.asset('assets/logochatbot.png'),
       ),
     );
 

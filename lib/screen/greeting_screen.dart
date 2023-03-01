@@ -44,7 +44,7 @@ class _GreetingState extends  State<Greeting>{
     var logo = Padding(
       padding: const EdgeInsets.fromLTRB(5, 20, 5, 0),
       child: Image.asset(
-        'assets/logo.jpg',
+        'assets/logochatbot.png',
         // fit: BoxFit.fitWidth,
       ),
     );

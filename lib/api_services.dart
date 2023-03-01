@@ -1,9 +1,15 @@
 import 'dart:convert';
-import 'dart:ffi';
+import 'dart:math';
 
 import 'package:http/http.dart' as http;
 
-String apiKey = "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";
+List<String> myList = [
+
+];
+
+var random = Random();
+int index = random.nextInt(myList.length);
+String apiKey = myList[index];
 
 class ApiServices {
   static String baseUrl = "https://api.openai.com/v1/completions";
@@ -28,15 +34,13 @@ class ApiServices {
         })
     );
 
-    if (res.statusCode == 200) {
+    if(res.statusCode == 200) {
       var data = jsonDecode(utf8.decode(res.bodyBytes));
       var msg = data['choices'][0]['text'];
       return msg;
     } else {
-      print(res.statusCode);
       print("Failed to fetch data");
       return '';
     }
   }
-  
 }
