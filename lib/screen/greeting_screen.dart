@@ -1,4 +1,3 @@
-import 'package:chat_app/main.dart';
 import 'package:chat_app/screen/sign_in_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';

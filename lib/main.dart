@@ -1,7 +1,4 @@
-import 'package:chat_app/screen/chat_screen.dart';
 import 'package:chat_app/screen/greeting_screen.dart';
-import 'package:chat_app/screen/setting_screen.dart';
-import 'package:chat_app/screen/sign_up_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:chat_app/screen/sign_in_screen.dart';
 import 'package:firebase_core/firebase_core.dart';

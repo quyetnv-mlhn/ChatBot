@@ -1,15 +1,12 @@
 import 'dart:async';
-import 'dart:io';
 
 import 'package:avatar_glow/avatar_glow.dart';
 import 'package:chat_app/animation/three_dot.dart';
 import 'package:chat_app/api_services.dart';
 import 'package:chat_app/authentication/user.dart';
 import 'package:chat_app/screen/setting_screen.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:chat_app/chatdata/handle.dart';
-import 'package:fluttertoast/fluttertoast.dart';
 import 'package:speech_to_text/speech_to_text.dart' as stt;
 import 'package:speech_to_text/speech_to_text.dart';
 import 'package:text_to_speech/text_to_speech.dart';
@@ -125,56 +122,70 @@ class _ChatState extends State<Chat> {
       waitData();
     }
 
-    return Scaffold(
-      backgroundColor: Colors.white,
-      appBar: AppBar(
-        automaticallyImplyLeading: false,
-        iconTheme: const IconThemeData(color: Colors.black54),
-        backgroundColor: const Color.fromRGBO(242, 248, 248, 1),
-        title: Row(children: [
-          const CircleAvatar(
-            backgroundImage: AssetImage('assets/logochatbot.png'),
-          ),
-          Expanded(
-            child: Text(
-              widget.title,
-              style: const TextStyle(color: Colors.black54, fontSize: 18),
-              textAlign: TextAlign.center,
-          ))
-        ]),
-        actions: [
-          IconButton(
-            icon: const Icon(
-              Icons.settings,
-            ),
-            onPressed: () {
-              Navigator.push(context,
-                  MaterialPageRoute(builder: (context) => const Setting()));
-            },
-          )
-        ],
-      ),
-      body: Stack(
-        children: [
-          Column(
-            children: [
-              Flexible(
-                child: ListView.builder(
-                  padding: const EdgeInsets.all(8),
-                  reverse: true,
-                  itemBuilder: (context, index) => _messages[index],
-                  itemCount: _messages.length,
-              )),
-              if (_messages.isNotEmpty && _messages.first.isUser) const ThreeDots(),
-              _buildTextComposer()
+    return GestureDetector(
+      onTap: () {
+        setState(() {
+          _textToSpeech.stop();
+        });
+      },
+      child: WillPopScope(
+        onWillPop: () async {
+          Navigator.of(context).pop();
+          _textToSpeech.stop();
+          return true;
+        },
+        child: Scaffold(
+          backgroundColor: Colors.white,
+          appBar: AppBar(
+            automaticallyImplyLeading: false,
+            iconTheme: const IconThemeData(color: Colors.black54),
+            backgroundColor: const Color.fromRGBO(242, 248, 248, 1),
+            title: Row(children: [
+              const CircleAvatar(
+                backgroundImage: AssetImage('assets/logochatbot.png'),
+              ),
+              Expanded(
+                child: Text(
+                  widget.title,
+                  style: const TextStyle(color: Colors.black54, fontSize: 18),
+                  textAlign: TextAlign.center,
+              ))
+            ]),
+            actions: [
+              IconButton(
+                icon: const Icon(
+                  Icons.settings,
+                ),
+                onPressed: () {
+                  Navigator.push(context,
+                      MaterialPageRoute(builder: (context) => const Setting()));
+                },
+              )
             ],
           ),
-          //tạo animation loading
-          checkSetState
-              ? const Expanded(
-                  child: Center(child: CircularProgressIndicator()))
-              : const Center(child: null),
-        ],
+          body: Stack(
+            children: [
+              Column(
+                children: [
+                  Flexible(
+                    child: ListView.builder(
+                      padding: const EdgeInsets.all(8),
+                      reverse: true,
+                      itemBuilder: (context, index) => _messages[index],
+                      itemCount: _messages.length,
+                  )),
+                  if (_messages.isNotEmpty && _messages.first.isUser) const ThreeDots(),
+                  _buildTextComposer()
+                ],
+              ),
+              //tạo animation loading
+              checkSetState
+                  ? const Expanded(
+                      child: Center(child: CircularProgressIndicator()))
+                  : const Center(child: null),
+            ],
+          ),
+        ),
       ),
     );
   }
@@ -269,7 +280,7 @@ class _ChatState extends State<Chat> {
 
     // String msg2 = Handle().handleUserInput(chatMessage.text);
 
-    String msg = await ApiServices.sendMessage(text);
+    String msg = await ApiChatBotServices.sendMessage(text);
     String msg1 = msg.replaceFirst("\n", "");
     String msg2 = msg1.replaceFirst("\n", "");
 
@@ -285,7 +296,8 @@ class _ChatState extends State<Chat> {
 
     setState(() {
       _messages.insert(0, reply);
-      _textToSpeech.speak(reply.text);
+      // _textToSpeech.speak(reply.text);
+      ApiPlayht.voice();
       _handle.addData(widget.userCustom.id, '${widget.section}?${widget.title}', widget.title, chatMessage.text, reply.text);
     });
   }

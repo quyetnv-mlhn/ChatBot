@@ -5,7 +5,6 @@ import 'package:chat_app/authentication/user.dart';
 import 'package:chat_app/chatdata/handle.dart';
 import 'package:chat_app/screen/chat_screen.dart';
 import 'package:chat_app/screen/setting_screen.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 
@@ -28,9 +27,9 @@ class _ConversationState extends State<Conversation> {
   final List<ConversationMessage> _conversations = [];
   final date = DateFormat('dd-MM-yyyy  hh:mm:ss a').format(DateTime.now());
   final _handle = Handle();
-  late List<ConversationMessage> conversationMessages;
   bool checkSetState = true;
   int backButtonPressedCount = 0;
+  bool checkFirstLogin = true;
 
 
   Future<bool> _onWillPop() async {
@@ -169,10 +168,13 @@ class _ConversationState extends State<Conversation> {
 
 
   void processMessages() async {
-    conversationMessages = await _handle.readSection(widget.user.id);
+    var conversationMessages = await _handle.readSection(widget.user.id);
     // Here, messages is a List<ConversationMessage>
     // You can now process the messages as needed
-    _conversations.insertAll(0, conversationMessages.reversed);
+    if (checkFirstLogin) {
+      _conversations.insertAll(0, conversationMessages.reversed);
+      checkFirstLogin = false;
+    }
     setState(() {
       checkSetState = false;
     });

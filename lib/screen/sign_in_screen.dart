@@ -1,11 +1,9 @@
 import 'package:chat_app/authentication/auth_page.dart';
 import 'package:chat_app/authentication/user.dart';
-import 'package:chat_app/chatdata/handle.dart';
 import 'package:chat_app/screen/conversation_screen.dart';
 import 'package:chat_app/screen/sign_up_screen.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:chat_app/screen/chat_screen.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 
