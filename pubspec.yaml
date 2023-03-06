@@ -47,6 +47,7 @@ dependencies:
   avatar_glow: ^2.0.2
   text_to_speech: ^0.2.3
   animated_text_kit: ^4.2.2
+  audioplayers: ^3.0.1
 
 dev_dependencies:
   flutter_test:

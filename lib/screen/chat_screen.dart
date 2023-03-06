@@ -28,7 +28,7 @@ class _ChatState extends State<Chat> {
   bool checkSetState = true;
   final Handle _handle = Handle();
   late stt.SpeechToText _speechToText;
-  TextToSpeech _textToSpeech = TextToSpeech();
+  // TextToSpeech _textToSpeech = TextToSpeech();
   bool _isListening = false;
   String? _textSpeech;
   bool checkPop = true; //kiem tra man hinh pop cua aleart dialog
@@ -37,7 +37,7 @@ class _ChatState extends State<Chat> {
   void initState() {
     super.initState();
     _speechToText = stt.SpeechToText();
-    _textToSpeech.setLanguage('vi-VN');
+    // _textToSpeech.setLanguage('vi-VN');
   }
 
   Future<void> waitData() async {
@@ -124,14 +124,14 @@ class _ChatState extends State<Chat> {
 
     return GestureDetector(
       onTap: () {
-        setState(() {
-          _textToSpeech.stop();
-        });
+        // setState(() {
+        //   _textToSpeech.stop();
+        // });
       },
       child: WillPopScope(
         onWillPop: () async {
           Navigator.of(context).pop();
-          _textToSpeech.stop();
+          // _textToSpeech.stop();
           return true;
         },
         child: Scaffold(
@@ -143,6 +143,7 @@ class _ChatState extends State<Chat> {
             title: Row(children: [
               const CircleAvatar(
                 backgroundImage: AssetImage('assets/logochatbot.png'),
+                backgroundColor: Colors.transparent,
               ),
               Expanded(
                 child: Text(
@@ -297,9 +298,14 @@ class _ChatState extends State<Chat> {
     setState(() {
       _messages.insert(0, reply);
       // _textToSpeech.speak(reply.text);
-      ApiPlayht.voice();
       _handle.addData(widget.userCustom.id, '${widget.section}?${widget.title}', widget.title, chatMessage.text, reply.text);
     });
+
+    try {
+      await ApiChatBotServices.getAudioUrl(reply.text);
+    } catch (e) {
+      print('Error: $e');
+    }
   }
 }
 
@@ -362,6 +368,7 @@ class ChatMessage extends StatelessWidget {
               margin: const EdgeInsets.only(right: 16, top: 10),
               child: const CircleAvatar(
                 backgroundImage: AssetImage("assets/logochatbot.png"),
+                backgroundColor: Colors.transparent,
               ),
             ),
             Column(
@@ -388,7 +395,7 @@ class ChatMessage extends StatelessWidget {
                               textStyle: const TextStyle(
                                 fontSize: 16.0,
                               ),
-                              speed: const Duration(milliseconds: 50),
+                              speed: const Duration(milliseconds: 100),
                             ),
                           ],
                           totalRepeatCount: 1,
