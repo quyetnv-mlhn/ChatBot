@@ -210,7 +210,7 @@ class _ConversationState extends State<Conversation> {
           actions: [
             IconButton(
                 onPressed: () {
-                  Navigator.push(context, MaterialPageRoute(builder: (context) => const Setting()));
+                  Navigator.push(context, MaterialPageRoute(builder: (context) => Setting(user: _userCustom,)));
                 },
                 icon: const Icon(
                   Icons.settings,

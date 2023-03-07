@@ -6,7 +6,7 @@ import 'package:audioplayers/audioplayers.dart';
 import 'package:http/http.dart' as http;
 
 List<String> myList = [
-
+  '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',
 ];
 
 var random = Random();
@@ -28,7 +28,7 @@ class ApiChatBotServices {
           'model': 'text-davinci-003',
           'prompt': '$message',
           'temperature': 0,
-          'max_tokens': 1000,
+          'max_tokens': 500,
           'top_p': 1,
           'frequency_penalty': 0.0,
           'presence_penalty': 0.0,
@@ -46,11 +46,11 @@ class ApiChatBotServices {
     }
   }
 
-  static getAudioUrl(String text) async {
-    const apiKey = 'ESSnE72dkdp11nN3XEctLNi8KKx9jJhx';
-    const voice = 'linhsan';
-    const speed = '0';
+  static String voice = 'linhsan';
 
+  static getAudioUrl(String text) async {
+    String apiKey = 'ESSnE72dkdp11nN3XEctLNi8KKx9jJhx';
+    String speed = '0';
     final response = await http.post(
       Uri.parse('https://api.fpt.ai/hmi/tts/v5'),
       headers: {
@@ -66,8 +66,8 @@ class ApiChatBotServices {
       print(data);
       Map<String, dynamic> dataConvert = jsonDecode(data);
       final audioUrl = dataConvert['async'];
-      final audioPlayer = AudioPlayer();
-      await audioPlayer.play(UrlSource(audioUrl));
+      print(audioUrl);
+      return audioUrl;
     } else {
       throw Exception('Failed to load audio');
     }

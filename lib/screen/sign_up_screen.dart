@@ -1,4 +1,5 @@
 import 'package:chat_app/authentication/auth_page.dart';
+import 'package:chat_app/authentication/user.dart';
 import 'package:chat_app/screen/sign_in_screen.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -17,6 +18,7 @@ class _SignUpState extends State<SignUp> {
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passController = TextEditingController();
   final TextEditingController confirmPassController = TextEditingController();
+  UserCustom? userCustom;
 
   Future<void> createUserWithEmailAndPassword() async {
     try {
@@ -24,6 +26,9 @@ class _SignUpState extends State<SignUp> {
         email: emailController.text,
         password: passController.text,
       );
+      userCustom?.name = fullNameController.text;
+      userCustom?.email = emailController.text;
+      userCustom?.photoURL = 'https://i.pinimg.com/736x/c6/e5/65/c6e56503cfdd87da299f72dc416023d4.jpg';
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Row(
