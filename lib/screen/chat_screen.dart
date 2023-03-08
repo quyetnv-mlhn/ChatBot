@@ -428,7 +428,7 @@ class ChatMessage extends StatelessWidget {
             Container(
               margin: const EdgeInsets.only(left: 16),
               child: CircleAvatar(
-                  backgroundImage: NetworkImage(MyData._userCustom!.photoURL),
+                  backgroundImage: NetworkImage(MyData._userCustom!.photoURL ?? 'https://phongreviews.com/wp-content/uploads/2022/11/avatar-facebook-mac-dinh-15.jpg'),
               )
             ),
           ],

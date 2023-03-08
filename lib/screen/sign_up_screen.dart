@@ -1,6 +1,7 @@
 import 'package:chat_app/authentication/auth_page.dart';
 import 'package:chat_app/authentication/user.dart';
 import 'package:chat_app/screen/sign_in_screen.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
@@ -46,6 +47,7 @@ class _SignUpState extends State<SignUp> {
           duration: Duration(seconds: 3),
         ),
       );
+
       fullNameController.clear();
       emailController.clear();
       passController.clear();

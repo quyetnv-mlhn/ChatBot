@@ -186,7 +186,7 @@ class _settingState extends State<Setting> {
                   ClipOval(
                     child: SizedBox.fromSize(
                       size: const Size(200, 200),
-                      child: Image.network(widget.user.photoURL, fit: BoxFit.fitWidth),
+                      child: Image.network(widget.user.photoURL ?? 'https://phongreviews.com/wp-content/uploads/2022/11/avatar-facebook-mac-dinh-15.jpg', fit: BoxFit.fitWidth),
                     ),
                   ),
                   ClipRRect(
@@ -196,9 +196,9 @@ class _settingState extends State<Setting> {
                 ]
               ),
               const SizedBox(height: 10,),
-              Text(widget.user.name, style: TextStyle(fontSize: 20)),
+              Text(widget.user.name ?? 'Chatbot', style: TextStyle(fontSize: 20)),
               const SizedBox(height: 10,),
-              Text(widget.user.email, style: TextStyle(fontSize: 15)),
+              Text(widget.user.email ?? 'chatbot@gmail.com', style: TextStyle(fontSize: 15)),
               const SizedBox(height: 20,),
               const Divider(color: Colors.grey,),
               Expanded(
