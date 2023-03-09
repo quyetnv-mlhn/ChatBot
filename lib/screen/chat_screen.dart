@@ -48,13 +48,21 @@ class _ChatState extends State<Chat> {
     _textToSpeech.setLanguage('vi-VN');
   }
 
+  // Future<void> waitData() async {
+  //   List<ChatMessage> _messages2 = await _handle.readData(
+  //       widget.userCustom.id, '${widget.section}?${widget.title}');
+  //   await Future.delayed(const Duration(seconds: 1), () {
+  //     _messages.addAll(_messages2);
+  //   });
+  //   setState(() {
+  //     checkSetState = false;
+  //   });
+  // }
+
   Future<void> waitData() async {
-    List<ChatMessage> _messages2 = await _handle.readData(
-        widget.userCustom.id, '${widget.section}?${widget.title}');
-    await Future.delayed(const Duration(seconds: 1), () {
-      _messages.addAll(_messages2);
-    });
+    List<ChatMessage> messages2 = await _handle.readData(widget.userCustom.id, '${widget.section}?${widget.title}');
     setState(() {
+      _messages.addAll(messages2);
       checkSetState = false;
     });
   }

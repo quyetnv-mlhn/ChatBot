@@ -44,25 +44,26 @@ class Handle {
       countRead = (data as Map)['count'] + 1;
       if (countRead == 11) countRead = 1;
       while (_list.isNotEmpty) {
-        // print('user: ${(data as Map)['${countRead}user']}');
-        // print('bot: ${(data as Map)['${countRead}bot']}');
+        print('user: ${(data as Map)['${countRead}user']}');
+        print('bot: ${(data as Map)['${countRead}bot']}');
 
-        ChatMessage chatMessage = ChatMessage(
-          text: (data as Map)['${countRead}user'],
-          isUser: true,
-          isNewMessage: false,
-        );
-
-        ChatMessage chatMessageBot = ChatMessage(
-          text: (data as Map)['${countRead}bot'],
-          isUser: false,
-          isNewMessage: false,
-        );
-
-        if (chatMessage.text != null) {
-          chatMessageReturn.insert(0, chatMessage);
-          chatMessageReturn.insert(0, chatMessageBot);
+        if((data as Map)['${countRead}user'] != null) {
+          ChatMessage chatMessage = ChatMessage(
+            text: (data as Map)['${countRead}user'],
+            isUser: true,
+            isNewMessage: false,
+          );
+          ChatMessage chatMessageBot = ChatMessage(
+            text: (data as Map)['${countRead}bot'],
+            isUser: false,
+            isNewMessage: false,
+          );
+          if (chatMessage.text != null) {
+            chatMessageReturn.insert(0, chatMessage);
+            chatMessageReturn.insert(0, chatMessageBot);
+          }
         }
+
 
         countRead++;
         if (countRead == 11) countRead = 1;
