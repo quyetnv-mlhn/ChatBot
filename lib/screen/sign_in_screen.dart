@@ -1,7 +1,9 @@
 import 'package:chat_app/authentication/auth_page.dart';
 import 'package:chat_app/authentication/user.dart';
+import 'package:chat_app/chatdata/handle.dart';
 import 'package:chat_app/screen/conversation_screen.dart';
 import 'package:chat_app/screen/sign_up_screen.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
@@ -16,6 +18,8 @@ final GoogleSignIn _googleSignIn = GoogleSignIn(
 
 class Login extends StatefulWidget {
   const Login({super.key});
+
+  // const Login.fromSignUp({super.key, required UserCustom userCustom});
 
   @override
   State<StatefulWidget> createState() {
@@ -77,7 +81,19 @@ class _LoginState extends State<Login> {
       );
 
       User? user = Auth().firebaseAuth.currentUser;
-      final userCustom = UserCustom(user?.uid, user?.email, user?.displayName, user?.photoURL);
+      String email = user?.email ?? '';
+      UserCustom userCustom = UserCustom(user?.uid, user?.email, user?.displayName, user?.photoURL);
+
+      final userRef = FirebaseFirestore.instance.collection('users').doc(email);
+      final documentSnapshot = await userRef.get();
+      if (documentSnapshot.exists) {
+        print('Tài liệu đã tồn tại!');
+        final data = documentSnapshot.data();
+        final dataConvert = data as Map;
+        userCustom = UserCustom(dataConvert['id'], dataConvert['email'], dataConvert['fullName'], dataConvert['imagePath']);
+      } else {
+        print('Tài liệu không tồn tại.');
+      }
 
       Navigator.push(context, MaterialPageRoute(builder: (context) => Conversation(user: userCustom,)));
     } on FirebaseAuthException catch (e) {

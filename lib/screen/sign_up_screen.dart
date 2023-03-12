@@ -1,9 +1,13 @@
+import 'dart:io';
+
 import 'package:chat_app/authentication/auth_page.dart';
 import 'package:chat_app/authentication/user.dart';
+import 'package:chat_app/chatdata/handle.dart';
 import 'package:chat_app/screen/sign_in_screen.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 class SignUp extends StatefulWidget {
   const SignUp({super.key});
@@ -15,11 +19,13 @@ class SignUp extends StatefulWidget {
 }
 
 class _SignUpState extends State<SignUp> {
+  final storage = const FlutterSecureStorage();
   final TextEditingController fullNameController = TextEditingController();
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passController = TextEditingController();
   final TextEditingController confirmPassController = TextEditingController();
   UserCustom? userCustom;
+  late File file;
 
   Future<void> createUserWithEmailAndPassword() async {
     try {
@@ -27,9 +33,9 @@ class _SignUpState extends State<SignUp> {
         email: emailController.text,
         password: passController.text,
       );
+
+      User? user = Auth().firebaseAuth.currentUser;
       userCustom?.name = fullNameController.text;
-      userCustom?.email = emailController.text;
-      userCustom?.photoURL = 'https://i.pinimg.com/736x/c6/e5/65/c6e56503cfdd87da299f72dc416023d4.jpg';
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Row(
@@ -47,7 +53,11 @@ class _SignUpState extends State<SignUp> {
           duration: Duration(seconds: 3),
         ),
       );
-
+      await Handle().addInfoUser(fullNameController.text, emailController.text, file, user!.uid, '', '', '');
+      //clear tài khoản và mật khẩu đã lưu ở màn hình Login
+      await storage.write(key: 'key_save_email', value: '');
+      await storage.write(key: 'key_save_password', value: '');
+      Navigator.push(context, MaterialPageRoute(builder: (context) => Login()));
       fullNameController.clear();
       emailController.clear();
       passController.clear();

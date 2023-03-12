@@ -2,6 +2,7 @@ import 'package:chat_app/api_services.dart';
 import 'package:chat_app/authentication/auth_page.dart';
 import 'package:chat_app/authentication/user.dart';
 import 'package:chat_app/screen/chat_screen.dart';
+import 'package:chat_app/screen/info_user_screen.dart';
 import 'package:chat_app/screen/sign_in_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
@@ -18,7 +19,7 @@ class Setting extends StatefulWidget {
 
 class _settingState extends State<Setting> {
   final storage = const FlutterSecureStorage();
-  bool _isExpanded = true;
+  bool _isExpandedVoice = true;
   String? _selectedVoice = ApiChatBotServices.voice;
 
   void readData() async {
@@ -31,132 +32,268 @@ class _settingState extends State<Setting> {
   @override
   Widget build(BuildContext context) {
     const storage = FlutterSecureStorage();
-    final containerChangeVoice = SingleChildScrollView(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.end,
+    UserCustom userCustom = widget.user;
+
+    final containerChangeVoice = Stack(
+        alignment: Alignment.topRight,
         children: [
+          SingleChildScrollView(
+              child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    ListTile(
+                      title: Text('Google'),
+                      leading: Radio(
+                        value: 'Google',
+                        groupValue: _selectedVoice,
+                        onChanged: (String? value) async {
+                          setState(() {
+                            _selectedVoice = value;
+                          });
+                          await storage.write(
+                              key: 'chooseVoiceGG', value: 'true');
+                        },
+                      ),
+                    ),
+                    ListTile(
+                      title: Text('Linh San'),
+                      leading: Radio(
+                        value: 'linhsan',
+                        groupValue: _selectedVoice,
+                        onChanged: (String? value) async {
+                          setState(() {
+                            _selectedVoice = value;
+                            ApiChatBotServices.voice = value!;
+                          });
+                          await storage.write(
+                              key: 'chooseVoiceGG', value: 'false');
+                        },
+                      ),
+                    ),
+                    ListTile(
+                      title: Text('Ban Mai'),
+                      leading: Radio(
+                        value: 'banmai',
+                        groupValue: _selectedVoice,
+                        onChanged: (String? value) async {
+                          setState(() {
+                            _selectedVoice = value;
+                            ApiChatBotServices.voice = value!;
+                          });
+                          await storage.write(
+                              key: 'chooseVoiceGG', value: 'false');
+                        },
+                      ),
+                    ),
+                    ListTile(
+                      title: Text('Lan Nhi'),
+                      leading: Radio(
+                        value: 'lannhi',
+                        groupValue: _selectedVoice,
+                        onChanged: (String? value) async {
+                          setState(() {
+                            _selectedVoice = value;
+                            ApiChatBotServices.voice = value!;
+                          });
+                          await storage.write(
+                              key: 'chooseVoiceGG', value: 'false');
+                        },
+                      ),
+                    ),
+                    ListTile(
+                      title: Text('Lê Minh'),
+                      leading: Radio(
+                        value: 'leminh',
+                        groupValue: _selectedVoice,
+                        onChanged: (String? value) async {
+                          setState(() {
+                            _selectedVoice = value;
+                            ApiChatBotServices.voice = value!;
+                          });
+                          await storage.write(
+                              key: 'chooseVoiceGG', value: 'false');
+                        },
+                      ),
+                    ),
+                    ListTile(
+                      title: Text('Mỹ An'),
+                      leading: Radio(
+                        value: 'myan',
+                        groupValue: _selectedVoice,
+                        onChanged: (String? value) async {
+                          setState(() {
+                            _selectedVoice = value;
+                            ApiChatBotServices.voice = value!;
+                          });
+                          await storage.write(
+                              key: 'chooseVoiceGG', value: 'false');
+                        },
+                      ),
+                    ),
+                    ListTile(
+                      title: Text('Thu Minh'),
+                      leading: Radio(
+                        value: 'thuminh',
+                        groupValue: _selectedVoice,
+                        onChanged: (String? value) async {
+                          setState(() {
+                            _selectedVoice = value;
+                            ApiChatBotServices.voice = value!;
+                          });
+                          await storage.write(
+                              key: 'chooseVoiceGG', value: 'false');
+                        },
+                      ),
+                    ),
+                    ListTile(
+                      title: Text('Gia Huy'),
+                      leading: Radio(
+                        value: 'giahuy',
+                        groupValue: _selectedVoice,
+                        onChanged: (String? value) async {
+                          setState(() {
+                            _selectedVoice = value;
+                            ApiChatBotServices.voice = value!;
+                          });
+                          await storage.write(
+                              key: 'chooseVoiceGG', value: 'false');
+                        },
+                      ),
+                    ),
+                  ]
+              )
+          ),
           ElevatedButton(
-            onPressed: () {
-              setState(() {
-                _isExpanded = !_isExpanded;
-              });
-            },
-            child: Icon(Icons.close_rounded, size: 25)
-          ),
-          ListTile(
-            title: Text('Google'),
-            leading: Radio(
-              value: 'Google',
-              groupValue: _selectedVoice,
-              onChanged: (String? value) async {
+              onPressed: () {
                 setState(() {
-                  _selectedVoice = value;
+                  _isExpandedVoice = !_isExpandedVoice;
                 });
-                await storage.write(key: 'chooseVoiceGG', value: 'true');
               },
-            ),
+              child: Icon(Icons.close_rounded, size: 25)
           ),
-          ListTile(
-            title: Text('Linh San'),
-            leading: Radio(
-              value: 'linhsan',
-              groupValue: _selectedVoice,
-              onChanged: (String? value) async {
-                setState(() {
-                  _selectedVoice = value;
-                  ApiChatBotServices.voice = value!;
-                });
-                await storage.write(key: 'chooseVoiceGG', value: 'false');
-              },
-            ),
-          ),
-          ListTile(
-            title: Text('Ban Mai'),
-            leading: Radio(
-              value: 'banmai',
-              groupValue: _selectedVoice,
-              onChanged: (String? value) async {
-                setState(() {
-                  _selectedVoice = value;
-                  ApiChatBotServices.voice = value!;
-                });
-                await storage.write(key: 'chooseVoiceGG', value: 'false');
-              },
-            ),
-          ),
-          ListTile(
-            title: Text('Lan Nhi'),
-            leading: Radio(
-              value: 'lannhi',
-              groupValue: _selectedVoice,
-              onChanged: (String? value) async {
-                setState(() {
-                  _selectedVoice = value;
-                  ApiChatBotServices.voice = value!;
-                });
-                await storage.write(key: 'chooseVoiceGG', value: 'false');
-              },
-            ),
-          ),
-          ListTile(
-            title: Text('Lê Minh'),
-            leading: Radio(
-              value: 'leminh',
-              groupValue: _selectedVoice,
-              onChanged: (String? value) async {
-                setState(() {
-                  _selectedVoice = value;
-                  ApiChatBotServices.voice = value!;
-                });
-                await storage.write(key: 'chooseVoiceGG', value: 'false');
-              },
-            ),
-          ),
-          ListTile(
-            title: Text('Mỹ An'),
-            leading: Radio(
-              value: 'myan',
-              groupValue: _selectedVoice,
-              onChanged: (String? value) async {
-                setState(() {
-                  _selectedVoice = value;
-                  ApiChatBotServices.voice = value!;
-                });
-                await storage.write(key: 'chooseVoiceGG', value: 'false');
-              },
-            ),
-          ),
-          ListTile(
-            title: Text('Thu Minh'),
-            leading: Radio(
-              value: 'thuminh',
-              groupValue: _selectedVoice,
-              onChanged: (String? value) async {
-                setState(() {
-                  _selectedVoice = value;
-                  ApiChatBotServices.voice = value!;
-                });
-                await storage.write(key: 'chooseVoiceGG', value: 'false');
-              },
-            ),
-          ),
-          ListTile(
-            title: Text('Gia Huy'),
-            leading: Radio(
-              value: 'giahuy',
-              groupValue: _selectedVoice,
-              onChanged: (String? value) async {
-                setState(() {
-                  _selectedVoice = value;
-                  ApiChatBotServices.voice = value!;
-                });
-                await storage.write(key: 'chooseVoiceGG', value: 'false');
-              },
-            ),
-          ),
-        ],
-      ),
+        ]
     );
+
+    final containerSetting = Column(
+      children: [
+        Expanded(
+          child: ListView(
+            children: [
+              GestureDetector(
+                onTap: () {
+                  Navigator.push(context, MaterialPageRoute(builder: (context) => UserInformation(user: userCustom)));
+                },
+                child: Row(
+                    children: const [
+                      Padding(
+                        padding: EdgeInsets.fromLTRB(0, 10, 10, 10),
+                        child: Icon(Icons.people_outline),
+                      ),
+                      Expanded(child: Text('Thông tin tài khoản')),
+                      Icon(Icons.arrow_circle_right_outlined),
+                    ]
+                ),
+              ),
+              Row(
+                children: const [
+                  Padding(
+                    padding: EdgeInsets.fromLTRB(0, 10, 10, 10),
+                    child: Icon(Icons.lock_clock_outlined),
+                  ),
+                  Expanded(child: Text('Bảo mật')),
+                  Icon(Icons.arrow_circle_right_outlined)
+                ],
+              ),
+              Row(
+                children: const [
+                  Padding(
+                    padding: EdgeInsets.fromLTRB(0, 10, 10, 10),
+                    child: Icon(Icons.remove_red_eye_rounded),
+                  ),
+                  Expanded(child: Text('Chế độ tối')),
+                  Icon(Icons.arrow_circle_right_outlined)
+                ],
+              ),
+              GestureDetector(
+                onTap: () {
+                  setState(() {
+                    _isExpandedVoice = !_isExpandedVoice;
+                  });
+                },
+                child: Row(
+                  children: const [
+                    Padding(
+                      padding: EdgeInsets.fromLTRB(0, 10, 10, 10),
+                      child: Icon(Icons.switch_account_outlined),
+                    ),
+                    Expanded(child: Text('Giọng đọc')),
+                    Icon(Icons.arrow_circle_right_outlined),
+                  ],
+                ),
+              ),
+              Row(
+                children: const [
+                  Padding(
+                    padding: EdgeInsets.fromLTRB(0, 10, 10, 10),
+                    child: Icon(Icons.more_vert_outlined),
+                  ),
+                  Expanded(child: Text('Ngôn ngữ')),
+                  Icon(Icons.arrow_circle_right_outlined),
+                ],
+              ),
+              Row(
+                children: const [
+                  Padding(
+                    padding: EdgeInsets.fromLTRB(0, 10, 10, 10),
+                    child: Icon(Icons.list_alt_rounded),
+                  ),
+                  Expanded(child: Text('Thống kê')),
+                  Icon(Icons.arrow_circle_right_outlined)
+                ],
+              ),
+              Row(
+                children: const [
+                  Padding(
+                    padding: EdgeInsets.fromLTRB(0, 10, 10, 10),
+                    child: Icon(Icons.warning_rounded),
+                  ),
+                  Expanded(child: Text('Trung tâm trợ giúp')),
+                  Icon(Icons.arrow_circle_right_outlined)
+                ],
+              ),
+            ],
+          ),
+        ),
+        ElevatedButton(
+          onPressed: () async {
+            Auth().signOut(context: context);
+            await storage.write(key: 'key_save_email', value: '');
+            await storage.write(key: 'key_save_password', value: '');
+            Navigator.push(context,
+                MaterialPageRoute(builder: (context) => const Login()));
+          },
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: const [
+              Padding(
+                padding: EdgeInsets.fromLTRB(0, 10, 10, 10),
+                child: Icon(Icons.logout_outlined),
+              ),
+              Text('Đăng xuất', style: TextStyle(fontSize: 18)),
+            ],
+          ),
+        ),
+      ],
+    );
+
+    expandedScreen() {
+      if (!_isExpandedVoice) {
+        return containerChangeVoice;
+      } else {
+        return containerSetting;
+    }
+  }
+
 
     return Scaffold(
       appBar: AppBar(
@@ -189,10 +326,10 @@ class _settingState extends State<Setting> {
                       child: Image.network(widget.user.photoURL ?? 'https://phongreviews.com/wp-content/uploads/2022/11/avatar-facebook-mac-dinh-15.jpg', fit: BoxFit.fitWidth),
                     ),
                   ),
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(0),
-                    child: const Icon(IconData(0xe0fa, fontFamily: 'MaterialIcons'), color: Colors.blueAccent,),
-                  )
+                  // ClipRRect(
+                  //   borderRadius: BorderRadius.circular(0),
+                  //   child: const Icon(IconData(0xe0fa, fontFamily: 'MaterialIcons'), color: Colors.blueAccent,),
+                  // )
                 ]
               ),
               const SizedBox(height: 10,),
@@ -202,108 +339,7 @@ class _settingState extends State<Setting> {
               const SizedBox(height: 20,),
               const Divider(color: Colors.grey,),
               Expanded(
-                child:
-                  _isExpanded
-                  ? ListView(
-                      children: [
-                        Row(
-                          children: const [
-                            Padding(
-                              padding: EdgeInsets.fromLTRB(0, 10, 10, 10),
-                              child: Icon(Icons.people_outline),
-                            ),
-                            Expanded(child: Text('Thông tin tài khoản')),
-                            Icon(Icons.arrow_circle_right_outlined),
-                          ]
-                        ),
-                        Row(
-                          children: const [
-                            Padding(
-                              padding: EdgeInsets.fromLTRB(0, 10, 10, 10),
-                              child: Icon(Icons.lock_clock_outlined),
-                            ),
-                            Expanded(child: Text('Bảo mật')),
-                            Icon(Icons.arrow_circle_right_outlined)
-                          ],
-                        ),
-                        Row(
-                          children: const [
-                            Padding(
-                              padding: EdgeInsets.fromLTRB(0, 10, 10, 10),
-                              child: Icon(Icons.remove_red_eye_rounded),
-                            ),
-                            Expanded(child: Text('Chế độ tối')),
-                            Icon(Icons.arrow_circle_right_outlined)
-                          ],
-                        ),
-                        GestureDetector(
-                          onTap: () {
-                            setState(() {
-                              _isExpanded = !_isExpanded;
-                            });
-                          },
-                          child: Row(
-                            children: const [
-                              Padding(
-                                padding: EdgeInsets.fromLTRB(0, 10, 10, 10),
-                                child: Icon(Icons.switch_account_outlined),
-                              ),
-                              Expanded(child: Text('Giọng đọc')),
-                              Icon(Icons.arrow_circle_right_outlined),
-                            ],
-                          ),
-                        ),
-                        Row(
-                          children: const [
-                            Padding(
-                              padding: EdgeInsets.fromLTRB(0, 10, 10, 10),
-                              child: Icon(Icons.more_vert_outlined),
-                            ),
-                            Expanded(child: Text('Ngôn ngữ')),
-                            Icon(Icons.arrow_circle_right_outlined),
-                          ],
-                        ),
-                        Row(
-                          children: const [
-                            Padding(
-                              padding: EdgeInsets.fromLTRB(0, 10, 10, 10),
-                              child: Icon(Icons.list_alt_rounded),
-                            ),
-                            Expanded(child: Text('Thống kê')),
-                            Icon(Icons.arrow_circle_right_outlined)
-                          ],
-                        ),
-                        Row(
-                          children: const [
-                            Padding(
-                              padding: EdgeInsets.fromLTRB(0, 10, 10, 10),
-                              child: Icon(Icons.warning_rounded),
-                            ),
-                            Expanded(child: Text('Trung tâm trợ giúp')),
-                            Icon(Icons.arrow_circle_right_outlined)
-                          ],
-                        ),
-                      ],
-                    )
-                  : containerChangeVoice,
-              ),
-              ElevatedButton(
-                onPressed: () async {
-                  Auth().signOut(context: context);
-                  await storage.write(key: 'key_save_email', value: '');
-                  await storage.write(key: 'key_save_password', value: '');
-                  Navigator.push(context, MaterialPageRoute(builder: (context) => const Login()));
-                },
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: const [
-                    Padding(
-                      padding: EdgeInsets.fromLTRB(0, 10, 10, 10),
-                      child: Icon(Icons.logout_outlined),
-                    ),
-                    Text('Đăng xuất', style: TextStyle(fontSize: 18)),
-                  ],
-                ),
+                child: expandedScreen(),
               ),
             ],
           ),

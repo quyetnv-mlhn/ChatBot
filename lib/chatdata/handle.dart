@@ -1,4 +1,5 @@
 import 'package:chat_app/screen/conversation_screen.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:intl/intl.dart';
 import 'package:chat_app/screen/chat_screen.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -44,8 +45,8 @@ class Handle {
       countRead = (data as Map)['count'] + 1;
       if (countRead == 11) countRead = 1;
       while (_list.isNotEmpty) {
-        print('user: ${(data as Map)['${countRead}user']}');
-        print('bot: ${(data as Map)['${countRead}bot']}');
+        // print('user: ${(data as Map)['${countRead}user']}');
+        // print('bot: ${(data as Map)['${countRead}bot']}');
 
         if((data as Map)['${countRead}user'] != null) {
           ChatMessage chatMessage = ChatMessage(
@@ -64,8 +65,8 @@ class Handle {
           }
         }
 
-
         countRead++;
+
         if (countRead == 11) countRead = 1;
         _list.remove(countRead);
       }
@@ -90,6 +91,35 @@ class Handle {
     }
 
     return conversationMesseges;
+  }
+
+  Future<void> addInfoUser(String fullName, String email, File imageFile, String id, String phoneNumber, String sex, String birthDay) async {
+    final userRef = FirebaseFirestore.instance.collection('users').doc(email);
+    final Reference storageReference = FirebaseStorage.instance.ref().child('images/${id}.jpg');
+
+    if (imageFile != null) {
+      final UploadTask uploadTask = storageReference.putFile(imageFile);
+      await uploadTask;
+    } else {
+      final http.Response response = await http.get(Uri.parse('https://phongreviews.com/wp-content/uploads/2022/11/avatar-facebook-mac-dinh-15.jpg'));
+      final Uint8List imageData = response.bodyBytes;
+      final UploadTask uploadTask = storageReference.putData(imageData);
+      await uploadTask;
+    }
+
+    final String downloadURL = await storageReference.getDownloadURL();
+
+    // Lưu trữ thông tin người dùng vào Firestore
+    await userRef.set({
+      'fullName': fullName,
+      'email': email,
+      'imagePath': downloadURL,
+      'id': id,
+      'phoneNumber': phoneNumber,
+      'sex': sex,
+      'birthDay': birthDay,
+      // 'update': update,
+    });
   }
 
   String handleUserInput(String user_input) {

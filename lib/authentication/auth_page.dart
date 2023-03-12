@@ -61,9 +61,21 @@ class Auth {
         final UserCredential userCredential =
         await auth.signInWithCredential(credential);
         user = userCredential.user;
-        final userCustom = UserCustom(user?.uid, user?.email, user?.displayName, user?.photoURL);
         // print(user?.photoURL);
         // print(user?.uid);
+        String email = user?.email ?? '';
+        UserCustom userCustom;
+        final userRef = FirebaseFirestore.instance.collection('users').doc(email);
+        final documentSnapshot = await userRef.get();
+        if (documentSnapshot.exists) {
+          print('Tài liệu đã tồn tại!');
+          final data = documentSnapshot.data();
+          final dataConvert = data as Map;
+          userCustom = UserCustom(dataConvert['id'], dataConvert['email'], dataConvert['name'], dataConvert['photoURL']);
+        } else {
+          print('Tài liệu không tồn tại.');
+          userCustom = UserCustom(user?.uid, user?.email, user?.displayName, user?.photoURL);
+        }
         Navigator.push(context, MaterialPageRoute(builder: (context) => Conversation(user: userCustom,)));
       } on FirebaseAuthException catch (e) {
         if (e.code == 'account-exists-with-different-credential') {
