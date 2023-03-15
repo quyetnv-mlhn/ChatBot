@@ -40,6 +40,7 @@ class _userInformationState extends State<UserInformation> {
     super.initState();
     userCustom = widget.user;
     getUserInfo(userCustom.email);
+    _loadImageFromNetwork(userCustom.photoURL);
   }
 
   Future<void> getUserInfo(String email) async {
@@ -71,19 +72,19 @@ class _userInformationState extends State<UserInformation> {
     });
   }
 
-  // Future<void> _loadImageFromNetwork(String Url) async {
-  //   try {
-  //     final response = await http.get(Uri.parse(Url));
-  //     final dir = await getApplicationDocumentsDirectory();
-  //     final file = File('${dir.path}/image.jpg');
-  //     await file.writeAsBytes(response.bodyBytes);
-  //     setState(() {
-  //       _imageFile = file;
-  //     });
-  //   } catch (e) {
-  //     print(e);
-  //   }
-  // }
+  Future<void> _loadImageFromNetwork(String Url) async {
+    try {
+      final response = await http.get(Uri.parse(Url));
+      final dir = await getApplicationDocumentsDirectory();
+      final file = File('${dir.path}/image.jpg');
+      await file.writeAsBytes(response.bodyBytes);
+      setState(() {
+        _imageFile = file;
+      });
+    } catch (e) {
+      print(e);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -226,7 +227,7 @@ class _userInformationState extends State<UserInformation> {
                           Icon(Icons.check_box, color: Colors.white),
                           SizedBox(width: 8.0),
                           Text(
-                            'Đã tạo tài khoản thành công.',
+                            'Đã cập nhật thành công.',
                             style: TextStyle(color: Colors.white),
                           ),
                         ],

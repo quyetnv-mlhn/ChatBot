@@ -269,6 +269,7 @@ class _ChatState extends State<Chat> {
         setState(() {
           _textToSpeech.stop();
           audioPlayer.stop();
+          _switchVideo();
         });
       },
       child: WillPopScope(

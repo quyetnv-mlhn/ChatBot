@@ -231,7 +231,7 @@ class Handle {
     'bóng đá': 'football',
     'thời trang': 'fashion',
     'tài chính': 'finance',
-    'điện tử': 'esport',
+    'thể thao điện tử': 'esport',
   };
 
   Map<String, List<String>> questions = {
