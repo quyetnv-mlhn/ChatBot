@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math';
 
 import 'package:audioplayers/audioplayers.dart';
 import 'package:avatar_glow/avatar_glow.dart';
@@ -29,7 +30,6 @@ class Chat extends StatefulWidget {
     MyData._userCustom = userCustom;
     return _ChatState();
   }
-
 }
 
 class _ChatState extends State<Chat> {
@@ -44,6 +44,12 @@ class _ChatState extends State<Chat> {
   bool checkPop = true; //kiem tra man hinh pop cua aleart dialog
   String chooseVoiceGG = 'false';
   final audioPlayer = AudioPlayer();
+  bool suggestTopic = false;
+  bool questionsTopic = false;
+  late String topic;
+  late int indexTopic;
+  int countSuggest = 0;
+  List<String> listKeywords = [];
 
   @override
   void initState() {
@@ -51,6 +57,95 @@ class _ChatState extends State<Chat> {
     _speechToText = stt.SpeechToText();
     _textToSpeech.setLanguage('vi-VN');
   }
+
+  //build các câu hỏi gợi ý khi bấm vào chủ đề
+  Container buildQuestionsTopic(String topic) {
+    listKeywords.clear();
+    print('countSuggest: $countSuggest');
+    if (countSuggest > 2) {
+      setState(() {
+        questionsTopic = false;
+        countSuggest = 0;
+      });
+    }
+
+    Random random = new Random();
+
+    String? chooseTopic = _handle.keywords[topic];
+    List<String> listQuestions = _handle.questions[chooseTopic]!;
+
+    int index1 = random.nextInt(listQuestions.length);
+    int index2;
+    do {
+      index2 = random.nextInt(listQuestions.length);
+    } while (index2 == index1);
+    print('index1: $index1, index2: $index2');
+
+    String firstQuestion = listQuestions[index1];
+    String secondQuestion = listQuestions[index2];
+
+    return Container(
+      width: MediaQuery.of(context).size.width * 80 / 100,
+      child: Column(
+        children: [
+          OutlinedButton(
+              onPressed: () {
+                setState(() {
+                  countSuggest++;
+                  suggestTopic = false;
+                  _handleSubmitted(firstQuestion);
+                });
+              },
+              child: Text(
+                firstQuestion,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              )
+          ),
+          OutlinedButton(
+              onPressed: () {
+                setState(() {
+                  countSuggest++;
+                  suggestTopic = false;
+                  _handleSubmitted(secondQuestion);
+                });
+              },
+              child: Text(
+                  secondQuestion,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis
+              )
+          ),
+        ],
+      ),
+    );
+  }
+
+  //build các chủ đề được gợi ý
+  Container buildOutlinedButtons(List<String> keywords) {
+    return Container(
+      width: MediaQuery.of(context).size.width * 80 / 100,
+      child: Center(
+        child: Wrap(
+          spacing: 8.0, // Khoảng cách giữa các button trong cùng một dòng
+          runSpacing: 8.0, // Khoảng cách giữa các dòng
+          children: keywords.map((keyword) {
+            return OutlinedButton(
+              onPressed: () {
+                setState(() {
+                  suggestTopic = false;
+                  questionsTopic = true;
+                  topic = keyword;
+                });
+              },
+              child: Text(keyword),
+            );
+          }).toList(),
+        ),
+      ),
+    );
+  }
+
 
   Future<void> waitData() async {
     List<ChatMessage> messages2 = await _handle.readData(
@@ -159,10 +254,10 @@ class _ChatState extends State<Chat> {
               ),
               Expanded(
                   child: Text(
-                    widget.title,
-                    style: const TextStyle(color: Colors.black54, fontSize: 18),
-                    textAlign: TextAlign.center,
-                  ))
+                widget.title,
+                style: const TextStyle(color: Colors.black54, fontSize: 18),
+                textAlign: TextAlign.center,
+              ))
             ]),
             actions: [
               IconButton(
@@ -170,8 +265,12 @@ class _ChatState extends State<Chat> {
                   Icons.settings,
                 ),
                 onPressed: () {
-                  Navigator.push(context,
-                      MaterialPageRoute(builder: (context) => Setting(user: widget.userCustom,)));
+                  Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => Setting(
+                                user: widget.userCustom,
+                              )));
                 },
               )
             ],
@@ -189,6 +288,8 @@ class _ChatState extends State<Chat> {
                   )),
                   if (_messages.isNotEmpty && _messages.first.isUser)
                     const ThreeDots(),
+                  if (suggestTopic && !questionsTopic) buildOutlinedButtons(listKeywords),
+                  if (questionsTopic) buildQuestionsTopic(topic),
                   _buildTextComposer()
                 ],
               ),
@@ -253,18 +354,22 @@ class _ChatState extends State<Chat> {
               ),
               Flexible(
                   child: TextField(
-                    style: const TextStyle(fontSize: 18),
-                    controller: _textEditingController,
-                    onSubmitted: _handleSubmitted,
-                    decoration:
+                style: const TextStyle(fontSize: 18),
+                controller: _textEditingController,
+                onSubmitted: _handleSubmitted,
+                decoration:
                     const InputDecoration.collapsed(hintText: "Send a message"),
-                  )),
+              )),
               Container(
                 margin: const EdgeInsets.only(left: 4),
                 child: IconButton(
                     icon: const Icon(Icons.send),
                     onPressed: () {
                       if (_textEditingController.text != "") {
+                        setState(() {
+                          suggestTopic = false;
+                          questionsTopic = false;
+                        });
                         _handleSubmitted(_textEditingController.text);
                         _textSpeech = '';
                       }
@@ -308,11 +413,21 @@ class _ChatState extends State<Chat> {
     );
 
     try {
+      //Kiểm tra reply có keyword hay không
+      List<String> topics = _handle.keywords.keys.toList();
+      for (int i = 0; i < topics.length; i++) {
+        if (reply.text.toLowerCase().contains(topics[i])) {
+          suggestTopic = true;
+          listKeywords.add(topics[i]);
+        }
+      }
+
       setState(() {
         _messages.insert(0, reply);
       });
 
-      String chooseVoiceGG = (await storage.read(key: 'chooseVoiceGG')) ?? 'false';
+      String chooseVoiceGG =
+          (await storage.read(key: 'chooseVoiceGG')) ?? 'false';
 
       if (chooseVoiceGG == 'true') {
         _textToSpeech.speak(reply.text);
@@ -321,7 +436,8 @@ class _ChatState extends State<Chat> {
         await audioPlayer.play(UrlSource(audioUrl));
       }
 
-      _handle.addData(widget.userCustom.id, '${widget.section}?${widget.title}', widget.title, chatMessage.text, reply.text);
+      _handle.addData(widget.userCustom.id, '${widget.section}?${widget.title}',
+          widget.title, chatMessage.text, reply.text);
     } catch (e) {
       print('Error: $e');
     }
@@ -333,11 +449,11 @@ class ChatMessage extends StatelessWidget {
   final bool isUser;
   bool isNewMessage;
 
-  ChatMessage({required this.text, required this.isUser, required this.isNewMessage});
+  ChatMessage(
+      {required this.text, required this.isUser, required this.isNewMessage});
 
   @override
   Widget build(BuildContext context) {
-
     if (isUser) {
       // print(_ChatState().widget.userCustom.photoURL);
       return Container(
@@ -370,11 +486,11 @@ class ChatMessage extends StatelessWidget {
               ],
             ),
             Container(
-              margin: const EdgeInsets.only(left: 16),
-              child: CircleAvatar(
-                  backgroundImage: NetworkImage(MyData._userCustom!.photoURL ?? 'https://phongreviews.com/wp-content/uploads/2022/11/avatar-facebook-mac-dinh-15.jpg'),
-              )
-            ),
+                margin: const EdgeInsets.only(left: 16),
+                child: CircleAvatar(
+                  backgroundImage: NetworkImage(MyData._userCustom!.photoURL ??
+                      'https://phongreviews.com/wp-content/uploads/2022/11/avatar-facebook-mac-dinh-15.jpg'),
+                )),
           ],
         ),
       );
@@ -406,8 +522,7 @@ class ChatMessage extends StatelessWidget {
                   ),
                   constraints: const BoxConstraints(maxWidth: 250),
                   margin: const EdgeInsets.only(top: 5),
-                  child:
-                      isNewMessage
+                  child: isNewMessage
                       ? AnimatedTextKit(
                           animatedTexts: [
                             TypewriterAnimatedText(
@@ -420,13 +535,12 @@ class ChatMessage extends StatelessWidget {
                           ],
                           totalRepeatCount: 1,
                           displayFullTextOnTap: true,
-                      )
-                      : Text(
-                      text,
-                      textAlign: TextAlign.left,
-                      style: const TextStyle(
-                        fontSize: 16,
-                      )),
+                        )
+                      : Text(text,
+                          textAlign: TextAlign.left,
+                          style: const TextStyle(
+                            fontSize: 16,
+                          )),
                 )
               ],
             )

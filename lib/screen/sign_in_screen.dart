@@ -90,7 +90,7 @@ class _LoginState extends State<Login> {
         print('Tài liệu đã tồn tại!');
         final data = documentSnapshot.data();
         final dataConvert = data as Map;
-        userCustom = UserCustom(dataConvert['id'], dataConvert['email'], dataConvert['fullName'], dataConvert['imagePath']);
+        userCustom = UserCustom.fromJson(dataConvert);
       } else {
         print('Tài liệu không tồn tại.');
       }

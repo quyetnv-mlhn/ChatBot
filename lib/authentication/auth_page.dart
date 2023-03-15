@@ -64,17 +64,16 @@ class Auth {
         // print(user?.photoURL);
         // print(user?.uid);
         String email = user?.email ?? '';
-        UserCustom userCustom;
+        UserCustom userCustom = UserCustom(user?.uid, user?.email, user?.displayName, user?.photoURL);;
         final userRef = FirebaseFirestore.instance.collection('users').doc(email);
         final documentSnapshot = await userRef.get();
         if (documentSnapshot.exists) {
           print('Tài liệu đã tồn tại!');
           final data = documentSnapshot.data();
           final dataConvert = data as Map;
-          userCustom = UserCustom(dataConvert['id'], dataConvert['email'], dataConvert['name'], dataConvert['photoURL']);
+          userCustom = UserCustom.fromJson(dataConvert);
         } else {
           print('Tài liệu không tồn tại.');
-          userCustom = UserCustom(user?.uid, user?.email, user?.displayName, user?.photoURL);
         }
         Navigator.push(context, MaterialPageRoute(builder: (context) => Conversation(user: userCustom,)));
       } on FirebaseAuthException catch (e) {

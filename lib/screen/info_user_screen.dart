@@ -1,5 +1,8 @@
 import 'dart:io';
-
+import 'package:chat_app/screen/setting_screen.dart';
+import 'package:http/http.dart' as http;
+import 'package:path/path.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:chat_app/api_services.dart';
 import 'package:chat_app/authentication/auth_page.dart';
 import 'package:chat_app/authentication/user.dart';
@@ -29,7 +32,7 @@ class _userInformationState extends State<UserInformation> {
   final birthController = TextEditingController();
   final phoneController = TextEditingController();
   final picker = ImagePicker();
-  late File _imageFile;
+  File? _imageFile;
   bool changeImage = false;
 
   @override
@@ -47,6 +50,7 @@ class _userInformationState extends State<UserInformation> {
     if (documentSnapshot.exists) {
       print('Tài liệu đã tồn tại!');
       userCustom = UserCustom.fromJson(dataConvert);
+      // await _loadImageFromNetwork(userCustom.photoURL);
     } else {
       print('Tài liệu không tồn tại.');
     }
@@ -66,6 +70,20 @@ class _userInformationState extends State<UserInformation> {
       }
     });
   }
+
+  // Future<void> _loadImageFromNetwork(String Url) async {
+  //   try {
+  //     final response = await http.get(Uri.parse(Url));
+  //     final dir = await getApplicationDocumentsDirectory();
+  //     final file = File('${dir.path}/image.jpg');
+  //     await file.writeAsBytes(response.bodyBytes);
+  //     setState(() {
+  //       _imageFile = file;
+  //     });
+  //   } catch (e) {
+  //     print(e);
+  //   }
+  // }
 
   @override
   Widget build(BuildContext context) {
@@ -107,7 +125,7 @@ class _userInformationState extends State<UserInformation> {
                       child: SizedBox.fromSize(
                         size: const Size(200, 200),
                         child: changeImage
-                            ? Image.file(_imageFile, fit: BoxFit.fitWidth)
+                            ? Image.file(_imageFile!, fit: BoxFit.fitWidth)
                             : Image.network(userCustom.photoURL ?? 'https://phongreviews.com/wp-content/uploads/2022/11/avatar-facebook-mac-dinh-15.jpg', fit: BoxFit.fitWidth),
                       ),
                     ),
@@ -199,7 +217,25 @@ class _userInformationState extends State<UserInformation> {
               ),
               ElevatedButton(
                 onPressed: () async {
-                  await Handle().addInfoUser(fullNameController.text, userCustom.email, _imageFile, userCustom.id, phoneController.text, sexController.text, birthController.text);
+                  await Handle().addInfoUser(fullNameController.text, userCustom.email, _imageFile!, userCustom.id, phoneController.text, sexController.text, birthController.text);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: const <Widget>[
+                          Icon(Icons.check_box, color: Colors.white),
+                          SizedBox(width: 8.0),
+                          Text(
+                            'Đã tạo tài khoản thành công.',
+                            style: TextStyle(color: Colors.white),
+                          ),
+                        ],
+                      ),
+                      backgroundColor: Colors.cyan,
+                      duration: Duration(seconds: 3),
+                    ),
+                  );
+                  Navigator.push(context, MaterialPageRoute(builder: (context) => Setting(user: userCustom)));
                 },
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,

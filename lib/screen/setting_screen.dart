@@ -33,7 +33,6 @@ class _settingState extends State<Setting> {
   Widget build(BuildContext context) {
     const storage = FlutterSecureStorage();
     UserCustom userCustom = widget.user;
-
     final containerChangeVoice = Stack(
         alignment: Alignment.topRight,
         children: [
@@ -323,7 +322,7 @@ class _settingState extends State<Setting> {
                   ClipOval(
                     child: SizedBox.fromSize(
                       size: const Size(200, 200),
-                      child: Image.network(widget.user.photoURL ?? 'https://phongreviews.com/wp-content/uploads/2022/11/avatar-facebook-mac-dinh-15.jpg', fit: BoxFit.fitWidth),
+                      child: Image.network(userCustom.photoURL ?? 'https://phongreviews.com/wp-content/uploads/2022/11/avatar-facebook-mac-dinh-15.jpg', fit: BoxFit.fitWidth),
                     ),
                   ),
                   // ClipRRect(

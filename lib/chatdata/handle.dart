@@ -226,4 +226,62 @@ class Handle {
       return("Xin lỗi, tôi không hiểu câu hỏi của bạn. Hãy thử lại với câu hỏi khác.");
     }
   }
+
+  Map<String, String> keywords = {
+    'bóng đá': 'football',
+    'thời trang': 'fashion',
+    'tài chính': 'finance',
+    'điện tử': 'esport',
+  };
+
+  Map<String, List<String>> questions = {
+    'football': [
+      'Ai là người thắng giải Quả bóng Vàng năm nay?',
+      'Ai là cầu thủ đang giữ kỷ lục ghi bàn nhiều nhất trong một mùa giải tại giải Ngoại hạng Anh?',
+      'Đội bóng nào đã giành chức vô địch World Cup 2018?',
+      'Ai là cầu thủ đang giữ kỷ lục số lần giành giải Cầu thủ xuất sắc nhất FIFA?',
+      'Trong môn bóng đá, tại sao thủ môn được phép dùng tay ở khu vực cấm địa?',
+      'Giải bóng đá nào được xem là giải đấu hàng đầu thế giới?',
+      'Cầu thủ nào đã giành giải Cầu thủ xuất sắc nhất World Cup 2018?',
+      'Ai là người sáng lập ra giải Ngoại hạng Anh?',
+      'Đội bóng nào là đội vô địch EURO 2020?',
+      'Trong bóng đá, giải pháp VAR được sử dụng để làm gì?'
+    ],
+    'fashion' : [
+      "Tại sao màu đen là màu thường được sử dụng trong thời trang?",
+      "Có bao nhiêu loại quần áo dành cho phụ nữ?",
+      "Lịch sử của giày cao gót?",
+      "Phụ kiện nào được sử dụng phổ biến nhất trong thời trang nữ?",
+      "Tên gọi của loại vải được làm từ sợi tơ tằm?",
+      "Nguồn gốc của áo sơ mi?",
+      "Những kiểu dáng giày sneakers phổ biến nhất hiện nay?",
+      "Tên gọi của loại đồng hồ mỏng nhất trên thị trường?",
+      "Phụ kiện nào được sử dụng phổ biến nhất trong thời trang nam?",
+      "Lịch sử của áo khoác da?"
+    ],
+    'finance' : [
+      "Tại sao nên đầu tư vào thị trường chứng khoán?",
+      "Điều gì ảnh hưởng đến giá cổ phiếu?",
+      "Làm thế nào để tìm hiểu về các công ty trên thị trường chứng khoán?",
+      "Đầu tư vào địa ốc có lợi hay không?",
+      "Ngân hàng thương mại và ngân hàng đầu tư khác nhau như thế nào?",
+      "Lợi ích và rủi ro của việc mua cổ phiếu trả cổ tức?",
+      "Lãi suất vay ngân hàng ảnh hưởng như thế nào đến tài chính cá nhân?",
+      "Phương pháp tiết kiệm hiệu quả nhất là gì?",
+      "Thị trường forex là gì và nó hoạt động như thế nào?",
+      "Cách phân biệt đầu tư và đánh bạc là gì?"
+    ],
+    'esport' : [
+      "Những tựa game nào đang thống trị trong giới thể thao điện tử hiện nay?",
+      "Có bao nhiêu đội tham gia giải đấu thể thao điện tử đang diễn ra?",
+      "Những kỹ năng cần thiết để trở thành một game thủ chuyên nghiệp là gì?",
+      "Các giải đấu thể thao điện tử được tổ chức tại những địa điểm nào trên thế giới?",
+      "Các trò chơi điện tử nào được đánh giá là phù hợp cho việc luyện tập tư duy và tăng cường trí nhớ?",
+      "Những trang web hay kênh Youtube nào có thể giúp cập nhật thông tin về thể thao điện tử nhanh nhất?",
+      "Các sự kiện lớn như Chung kết Thế giới Liên Minh Huyền Thoại hay The International của Dota 2 có sự tham gia của những đội tuyển nào?",
+      "Các game thủ nổi tiếng trong giới thể thao điện tử là ai?",
+      "Có những trò chơi điện tử nào đang được phát triển để có thể trở thành môn thể thao chính thức trong tương lai?",
+      "Những cách nào để tăng cường kỹ năng chơi game và đạt thành tích cao trong các giải đấu thể thao điện tử?"
+    ],
+  };
 }
