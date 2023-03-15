@@ -14,6 +14,7 @@ import 'package:speech_to_text/speech_to_text.dart' as stt;
 import 'package:speech_to_text/speech_to_text.dart';
 import 'package:text_to_speech/text_to_speech.dart';
 import 'package:animated_text_kit/animated_text_kit.dart';
+import 'package:video_player/video_player.dart';
 
 class Chat extends StatefulWidget {
   final String title;
@@ -44,6 +45,10 @@ class _ChatState extends State<Chat> {
   bool checkPop = true; //kiem tra man hinh pop cua aleart dialog
   String chooseVoiceGG = 'false';
   final audioPlayer = AudioPlayer();
+  bool switchType = true;
+
+  late VideoPlayerController _controller;
+  int _currentVideoIndex = 1;
   bool suggestTopic = false;
   bool questionsTopic = false;
   late String topic;
@@ -56,6 +61,37 @@ class _ChatState extends State<Chat> {
     super.initState();
     _speechToText = stt.SpeechToText();
     _textToSpeech.setLanguage('vi-VN');
+    _initializeVideoPlayer();
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  Future<void> _initializeVideoPlayer() async {
+    _controller =
+        VideoPlayerController.asset('assets/robot_girl_$_currentVideoIndex.mp4')
+          ..initialize().then((_) {
+            setState(() {});
+          });
+    _controller.play();
+    _controller.setLooping(true);
+  }
+
+  void _switchVideo() async {
+    _controller.pause();
+    _currentVideoIndex = _currentVideoIndex == 1 ? 2 : 1;
+    final newController = VideoPlayerController.asset(
+        'assets/robot_girl_$_currentVideoIndex.mp4');
+    await newController.initialize();
+    setState(() {
+      _controller.dispose();
+      _controller = newController;
+    });
+    _controller.setLooping(true);
+    _controller.play();
   }
 
   //build các câu hỏi gợi ý khi bấm vào chủ đề
@@ -248,9 +284,18 @@ class _ChatState extends State<Chat> {
             iconTheme: const IconThemeData(color: Colors.black54),
             backgroundColor: const Color.fromRGBO(242, 248, 248, 1),
             title: Row(children: [
-              const CircleAvatar(
-                backgroundImage: AssetImage('assets/logochatbot.png'),
-                backgroundColor: Colors.transparent,
+              GestureDetector(
+                onTap: () {
+                  setState(() {
+                    switchType = !switchType;
+                  });
+                },
+                child: switchType
+                    ? CircleAvatar(
+                        backgroundImage: AssetImage('assets/logochatbot.png'),
+                        backgroundColor: Colors.transparent,
+                      )
+                    : Icon(Icons.chat_outlined),
               ),
               Expanded(
                   child: Text(
@@ -280,17 +325,48 @@ class _ChatState extends State<Chat> {
               Column(
                 children: [
                   Flexible(
-                      child: ListView.builder(
-                    padding: const EdgeInsets.all(8),
-                    reverse: true,
-                    itemBuilder: (context, index) => _messages[index],
-                    itemCount: _messages.length,
-                  )),
-                  if (_messages.isNotEmpty && _messages.first.isUser)
+                      child: !switchType
+                          ? Stack(children: [
+                              Opacity(
+                                opacity:
+                                    0.8, // Đặt giá trị opacity thành 0.5 để làm mờ ảnh
+                                child: Image.asset(
+                                  'assets/lab.png',
+                                  fit: BoxFit.cover,
+                                  width: MediaQuery.of(context).size.width,
+                                  height: MediaQuery.of(context).size.height,
+                                ),
+                              ),
+                              Column(
+                                children: [
+                                  Expanded(
+                                    child: Center(
+                                      child: _controller.value.isInitialized
+                                          ? AspectRatio(
+                                              aspectRatio:
+                                                  _controller.value.aspectRatio,
+                                              child: VideoPlayer(_controller),
+                                            )
+                                          : CircularProgressIndicator(),
+                                    ),
+                                  ),
+                                  _buildTextComposer()
+                                ],
+                              ),
+                            ])
+                          : ListView.builder(
+                              padding: const EdgeInsets.all(8),
+                              reverse: true,
+                              itemBuilder: (context, index) => _messages[index],
+                              itemCount: _messages.length,
+                            )),
+                  if (_messages.isNotEmpty &&
+                      _messages.first.isUser &&
+                      switchType)
                     const ThreeDots(),
-                  if (suggestTopic && !questionsTopic) buildOutlinedButtons(listKeywords),
-                  if (questionsTopic) buildQuestionsTopic(topic),
-                  _buildTextComposer()
+                  if (suggestTopic && !questionsTopic && switchType) buildOutlinedButtons(listKeywords),
+                  if (questionsTopic && switchType) buildQuestionsTopic(topic),
+                  if (switchType) _buildTextComposer()
                 ],
               ),
               //tạo animation loading
@@ -366,10 +442,6 @@ class _ChatState extends State<Chat> {
                     icon: const Icon(Icons.send),
                     onPressed: () {
                       if (_textEditingController.text != "") {
-                        setState(() {
-                          suggestTopic = false;
-                          questionsTopic = false;
-                        });
                         _handleSubmitted(_textEditingController.text);
                         _textSpeech = '';
                       }
@@ -430,10 +502,24 @@ class _ChatState extends State<Chat> {
           (await storage.read(key: 'chooseVoiceGG')) ?? 'false';
 
       if (chooseVoiceGG == 'true') {
+        _switchVideo();
         _textToSpeech.speak(reply.text);
+        Future.delayed(Duration(milliseconds: reply.text.length * 60), () {
+          _switchVideo();
+        });
       } else {
+        bool sv = true;
         String audioUrl = await ApiChatBotServices.getAudioUrl(reply.text);
         await audioPlayer.play(UrlSource(audioUrl));
+        _switchVideo();
+
+        // 3 cho AudioPlayerState.completed.
+        audioPlayer.onPlayerStateChanged.listen((playerState) {
+          if (playerState.index == 3 && sv) {
+            _switchVideo();
+            sv = false;
+          }
+        });
       }
 
       _handle.addData(widget.userCustom.id, '${widget.section}?${widget.title}',
@@ -454,6 +540,7 @@ class ChatMessage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+
     if (isUser) {
       // print(_ChatState().widget.userCustom.photoURL);
       return Container(
